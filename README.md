@@ -1,4 +1,4 @@
-# scitex_seizure_metrics
+# SciTeX Seizure Metrics (`scitex-seizure-metrics`)
 
 <p align="center">
   <a href="https://scitex.ai">
@@ -9,16 +9,16 @@
 <p align="center"><b>Unified evaluation library for seizure detection and forecasting — sample-based, alarm-based, and the bridge between them.</b></p>
 
 <p align="center">
-  <a href="https://scitex_seizure_metrics.readthedocs.io/">Full Documentation</a> · <code>pip install scitex_seizure_metrics</code>
+  <a href="https://scitex-seizure-metrics.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-seizure-metrics</code>
 </p>
 
 <!-- scitex-badges:start -->
 <p align="center">
-  <a href="https://pypi.org/project/scitex_seizure_metrics/"><img src="https://img.shields.io/pypi/v/scitex_seizure_metrics.svg" alt="PyPI"></a>
-  <a href="https://pypi.org/project/scitex_seizure_metrics/"><img src="https://img.shields.io/pypi/pyversions/scitex_seizure_metrics.svg" alt="Python"></a>
-  <a href="https://github.com/ywatanabe1989/scitex_seizure_metrics/actions/workflows/test.yml"><img src="https://github.com/ywatanabe1989/scitex_seizure_metrics/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
-  <a href="https://codecov.io/gh/ywatanabe1989/scitex_seizure_metrics"><img src="https://codecov.io/gh/ywatanabe1989/scitex_seizure_metrics/graph/badge.svg" alt="Coverage"></a>
-  <a href="https://scitex_seizure_metrics.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/scitex_seizure_metrics/badge/?version=latest" alt="Docs"></a>
+  <a href="https://pypi.org/project/scitex-seizure-metrics/"><img src="https://img.shields.io/pypi/v/scitex-seizure-metrics.svg" alt="PyPI"></a>
+  <a href="https://pypi.org/project/scitex-seizure-metrics/"><img src="https://img.shields.io/pypi/pyversions/scitex-seizure-metrics.svg" alt="Python"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-seizure-metrics/actions/workflows/test.yml"><img src="https://github.com/ywatanabe1989/scitex-seizure-metrics/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
+  <a href="https://codecov.io/gh/ywatanabe1989/scitex-seizure-metrics"><img src="https://codecov.io/gh/ywatanabe1989/scitex-seizure-metrics/graph/badge.svg" alt="Coverage"></a>
+  <a href="https://scitex-seizure-metrics.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/scitex-seizure-metrics/badge/?version=latest" alt="Docs"></a>
   <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/license-AGPL_v3-blue.svg" alt="License: AGPL v3"></a>
 </p>
 <!-- scitex-badges:end -->
@@ -48,7 +48,7 @@
 ## Installation
 
 ```bash
-pip install scitex_seizure_metrics
+pip install scitex-seizure-metrics
 ```
 
 ## Quick Start
