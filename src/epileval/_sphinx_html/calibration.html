@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="surrogates" href="surrogates.html"><link rel="prev" title="bridge" href="bridge.html">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>calibration - epileval 0.1.0</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
@@ -270,7 +270,7 @@ come from miscalibration (reliability) or low discrimination (low
 resolution).</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="epileval.calibration.CalibrationReport">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">epileval.calibration.</span></span><span class="sig-name descname"><span class="pre">CalibrationReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliability</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uncertainty</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_calibration_error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_observed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_counts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epileval/calibration.html#CalibrationReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epileval.calibration.CalibrationReport" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">epileval.calibration.</span></span><span class="sig-name descname"><span class="pre">CalibrationReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliability</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uncertainty</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_calibration_error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_observed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_counts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epileval/calibration.html#CalibrationReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epileval.calibration.CalibrationReport" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Container for calibration metrics + per-bin curve points.</p>
 <dl class="field-list simple">
@@ -289,49 +289,49 @@ resolution).</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.calibration.CalibrationReport.bin_centers">
-<span class="sig-name descname"><span class="pre">bin_centers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a></em><a class="headerlink" href="#epileval.calibration.CalibrationReport.bin_centers" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">bin_centers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a></span><a class="headerlink" href="#epileval.calibration.CalibrationReport.bin_centers" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.calibration.CalibrationReport.bin_counts">
-<span class="sig-name descname"><span class="pre">bin_counts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a></em><a class="headerlink" href="#epileval.calibration.CalibrationReport.bin_counts" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">bin_counts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a></span><a class="headerlink" href="#epileval.calibration.CalibrationReport.bin_counts" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.calibration.CalibrationReport.bin_observed">
-<span class="sig-name descname"><span class="pre">bin_observed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a></em><a class="headerlink" href="#epileval.calibration.CalibrationReport.bin_observed" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">bin_observed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a></span><a class="headerlink" href="#epileval.calibration.CalibrationReport.bin_observed" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.calibration.CalibrationReport.brier">
-<span class="sig-name descname"><span class="pre">brier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="headerlink" href="#epileval.calibration.CalibrationReport.brier" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">brier</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#epileval.calibration.CalibrationReport.brier" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.calibration.CalibrationReport.expected_calibration_error">
-<span class="sig-name descname"><span class="pre">expected_calibration_error</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="headerlink" href="#epileval.calibration.CalibrationReport.expected_calibration_error" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">expected_calibration_error</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#epileval.calibration.CalibrationReport.expected_calibration_error" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.calibration.CalibrationReport.reliability">
-<span class="sig-name descname"><span class="pre">reliability</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="headerlink" href="#epileval.calibration.CalibrationReport.reliability" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">reliability</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#epileval.calibration.CalibrationReport.reliability" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.calibration.CalibrationReport.resolution">
-<span class="sig-name descname"><span class="pre">resolution</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="headerlink" href="#epileval.calibration.CalibrationReport.resolution" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">resolution</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#epileval.calibration.CalibrationReport.resolution" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.calibration.CalibrationReport.uncertainty">
-<span class="sig-name descname"><span class="pre">uncertainty</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="headerlink" href="#epileval.calibration.CalibrationReport.uncertainty" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">uncertainty</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#epileval.calibration.CalibrationReport.uncertainty" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="epileval.calibration.calibration_report">
-<span class="sig-prename descclassname"><span class="pre">epileval.calibration.</span></span><span class="sig-name descname"><span class="pre">calibration_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_proba</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'uniform'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epileval/calibration.html#calibration_report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epileval.calibration.calibration_report" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">epileval.calibration.</span></span><span class="sig-name descname"><span class="pre">calibration_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_proba</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'uniform'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epileval/calibration.html#calibration_report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epileval.calibration.calibration_report" title="Link to this definition">¶</a></dt>
 <dd><p>Compute Brier decomposition + reliability table.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -433,8 +433,8 @@ resolution).</p>
     </aside>
   </div>
 </div><script src="_static/documentation_options.js?v=01f34227"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
     </body>
 </html>

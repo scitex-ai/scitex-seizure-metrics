@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="detection" href="detection.html"><link rel="prev" title="Quick start" href="quickstart.html">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>policy - epileval 0.1.0</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
@@ -248,7 +248,7 @@ in epileval; never silently defaulted, so every reported number can be
 traced to the policy that produced it.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="epileval.policy.AlarmPolicy">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">epileval.policy.</span></span><span class="sig-name descname"><span class="pre">AlarmPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sph_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sop_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cadence_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refractory_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alarm_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_consecutive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_denominator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'interictal'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epileval/policy.html#AlarmPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epileval.policy.AlarmPolicy" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">epileval.policy.</span></span><span class="sig-name descname"><span class="pre">AlarmPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sph_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sop_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cadence_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refractory_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alarm_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_consecutive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_denominator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'interictal'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epileval/policy.html#AlarmPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epileval.policy.AlarmPolicy" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Knobs that govern how a continuous prediction stream is converted
 into discrete alarms, and how those alarms are matched to seizures.</p>
@@ -280,12 +280,12 @@ removed). The Mormann tradition is “interictal”.</p></li>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.policy.AlarmPolicy.alarm_threshold">
-<span class="sig-name descname"><span class="pre">alarm_threshold</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></em><a class="headerlink" href="#epileval.policy.AlarmPolicy.alarm_threshold" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">alarm_threshold</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#epileval.policy.AlarmPolicy.alarm_threshold" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.policy.AlarmPolicy.cadence_seconds">
-<span class="sig-name descname"><span class="pre">cadence_seconds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="headerlink" href="#epileval.policy.AlarmPolicy.cadence_seconds" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">cadence_seconds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#epileval.policy.AlarmPolicy.cadence_seconds" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -301,27 +301,27 @@ removed). The Mormann tradition is “interictal”.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.policy.AlarmPolicy.fp_denominator">
-<span class="sig-name descname"><span class="pre">fp_denominator</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'interictal'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'total'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'interictal'</span></em><a class="headerlink" href="#epileval.policy.AlarmPolicy.fp_denominator" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">fp_denominator</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'interictal'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'total'</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'interictal'</span></span><a class="headerlink" href="#epileval.policy.AlarmPolicy.fp_denominator" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.policy.AlarmPolicy.merge_consecutive">
-<span class="sig-name descname"><span class="pre">merge_consecutive</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#epileval.policy.AlarmPolicy.merge_consecutive" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">merge_consecutive</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#epileval.policy.AlarmPolicy.merge_consecutive" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.policy.AlarmPolicy.refractory_seconds">
-<span class="sig-name descname"><span class="pre">refractory_seconds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="headerlink" href="#epileval.policy.AlarmPolicy.refractory_seconds" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">refractory_seconds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#epileval.policy.AlarmPolicy.refractory_seconds" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.policy.AlarmPolicy.sop_seconds">
-<span class="sig-name descname"><span class="pre">sop_seconds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="headerlink" href="#epileval.policy.AlarmPolicy.sop_seconds" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">sop_seconds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#epileval.policy.AlarmPolicy.sop_seconds" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="epileval.policy.AlarmPolicy.sph_seconds">
-<span class="sig-name descname"><span class="pre">sph_seconds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="headerlink" href="#epileval.policy.AlarmPolicy.sph_seconds" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">sph_seconds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#epileval.policy.AlarmPolicy.sph_seconds" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -407,8 +407,8 @@ removed). The Mormann tradition is “interictal”.</p></li>
     </aside>
   </div>
 </div><script src="_static/documentation_options.js?v=01f34227"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
     </body>
 </html>
