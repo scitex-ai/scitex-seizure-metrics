@@ -33,7 +33,8 @@
 | 2 | **Sample- vs alarm-based collapse is documented but untooled** — Andrade 2024 showed that 50/56 patients beat chance under sample-based eval but **only 6/46 under alarm-based**. The community accepts the warning but has no packaged tool to apply both regimes routinely. | **`detection.evaluate` + `forecasting.evaluate_stream`** through one library; same input, both regimes side-by-side. |
 | 3 | **FP/hr lacks a denominator convention** — some papers normalise by total recording time, some by interictal-only time, refractory rules vary or are unstated. | **Explicit `AlarmPolicy`** required by every alarm-aware function — no silent defaults; every reported number is reproducible. |
 
-## Comparison with existing tools
+<details>
+<summary><b>Comparison with existing tools</b></summary>
 
 | Tool | Language | Sample-based | Event-based | Forecasting (SPH/SOP) | IoC vs surrogate | Cross-paper convertor | Status |
 |---|---|---|---|---|---|---|---|
@@ -44,6 +45,48 @@
 | `SeizyML` ([2024](https://pmc.ncbi.nlm.nih.gov/articles/PMC11160878/)) | Python | ✅ | ✅ | ❌ | ❌ | ❌ | detection scope |
 | Andrade et al. 2024 (paper) | — | ✅ | ✅ | ✅ | ✅ | ❌ | research code, not a package |
 | **scitex-seizure-metrics** | Python | ✅ | ✅ | ✅ | ✅ | ✅ | this repo |
+
+</details>
+
+## Supported Metrics
+
+Quick definitions for the metrics and policy knobs that recur throughout
+the README, the docstrings, and the cited papers.
+
+### Sample-based metrics
+
+| Term | Meaning |
+| --- | --- |
+| **AUROC** | Area Under the Receiver Operating Characteristic curve. Probability the model ranks a random positive window above a random negative window. Threshold-free; insensitive to class prevalence. |
+| **AUPRC** | Area Under the Precision–Recall curve. Threshold-free; **sensitive to class prevalence** — the value to read on heavily-imbalanced seizure data when AUROC looks deceptively high. |
+| **Brier** | Mean squared error between predicted probability and the 0/1 label. Lower is better. Decomposes into reliability + resolution + uncertainty (`scitex_seizure_metrics.calibration`). |
+| **MCC** | Matthews Correlation Coefficient. A single balanced summary statistic robust to class imbalance; ranges from −1 (anti-correlation) through 0 (chance) to +1 (perfect). |
+| **Balanced accuracy** | (Sensitivity + Specificity) / 2. The accuracy you would get if the prevalence were 50/50. |
+| **Sensitivity** (recall) | Fraction of true seizures detected. Reported at a chosen threshold. |
+| **Precision** (PPV) | Fraction of detections that were true seizures. Drops fast under low prevalence. |
+| **ECE** | Expected Calibration Error. Average gap between predicted probability and observed frequency across bins. |
+
+### Alarm-based metrics
+
+| Term | Meaning |
+| --- | --- |
+| **Alarm** | A single binary "warning is on" event derived from a thresholded probability stream + the `AlarmPolicy`. |
+| **FP/hr** (false-positive rate per hour) | Number of alarms not followed by a seizure within (SPH, SPH + SOP], normalised by the chosen denominator (`fp_denominator='total'` or `'interictal'`). |
+| **IoC** | Improvement over Chance. The signed gap between the model's alarm-based sensitivity and the same statistic recomputed under a chance-baseline alarm generator (`scitex_seizure_metrics.surrogates`, default Poisson). Significance is read from a surrogate distribution. |
+| **Time-in-warning** (TIW, "proportion time in warning") | Fraction of recording time spent inside an active warning window (between alarm onset and refractory end). The natural denominator that pairs with sensitivity in the Proix 2021 operating curve. |
+| **Sensitivity vs proportion-time-in-warning** | Operating curve introduced by Proix 2021. Plotted instead of sensitivity vs FP/hr when alarm refractory periods make per-hour counts misleading. Same x-axis units as Cook 2013's "time-in-warning" reporting. |
+| **Beats chance (alarm)** | Boolean — is the model's IoC above the surrogate distribution at the configured significance level? Andrade 2024's headline: 50/56 patients beat chance under sample-based eval but only 6/46 under alarm-based. |
+
+### `AlarmPolicy` knobs (every one is mandatory)
+
+| Knob | Meaning |
+| --- | --- |
+| **SPH** (`sph_seconds`) | Seizure-Prediction Horizon — minimum lead-time the alarm must precede the seizure. Alarms that fire later are not credited. |
+| **SOP** (`sop_seconds`) | Seizure-Occurrence Period — the window after SPH within which the predicted seizure must actually occur for the alarm to count as a true positive. Defines `[SPH, SPH + SOP]`. |
+| **Cadence** (`cadence_seconds`) | Sampling cadence of the alarm decision — how often a fresh "is the warning on?" decision is emitted from the probability stream. |
+| **Refractory** (`refractory_seconds`) | Post-alarm silent window during which no new alarm can fire. Suppresses bursts of redundant alarms around a single onset. |
+| **Alarm threshold** (`alarm_threshold`) | Probability cut-off above which the stream is binarised into an alarm. The threshold-sweep helpers iterate this. |
+| **FP denominator** (`fp_denominator`) | What FP/hr is normalised by — `'total'` (Cook 2013, Karoly 2017) or `'interictal'` (Mormann 2007 tradition). No silent default. |
 
 ## Installation
 
@@ -75,17 +118,7 @@ print(rep.sensitivity, rep.fp_per_hour, rep.ioc, rep.time_in_warning_frac)
 
 See `examples/quick_start_detection.py` and `examples/quick_start_forecasting.py`.
 
-## Demo
-
-Two runnable scripts ship under `examples/`:
-
-- [`quick_start_detection.py`](examples/quick_start_detection.py) — sample-based
-  evaluation on a synthetic per-window probability stream; prints `roc_auc`,
-  `pr_auc`, `brier`, `mcc`, `balanced_accuracy`.
-- [`quick_start_forecasting.py`](examples/quick_start_forecasting.py) —
-  alarm-based evaluation with an explicit `AlarmPolicy`; prints
-  `sensitivity`, `fp_per_hour`, `ioc`, `time_in_warning_frac` and runs an
-  IoC surrogate test.
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -98,35 +131,6 @@ flowchart LR
     RepFc --> Plots["plots: sensitivity vs FP/hr,<br/>IoC vs surrogate, cadence ablation"]
 ```
 
-## Architecture
-
-Module layout under `src/scitex_seizure_metrics/`:
-
-```
-scitex_seizure_metrics/
-├── detection.py        sample-based metric pipeline (AUROC, AUPRC, Brier, MCC, ...)
-├── forecasting.py      alarm-based pipeline — evaluate_stream, sweep_thresholds,
-│                       sweep_policies (cadence ablation)
-├── policy.py           AlarmPolicy dataclass — SPH · SOP · cadence · refractory ·
-│                       fp_denominator (no silent defaults)
-├── _alarm.py           internal alarm-derivation (private)
-├── bridge.py           sample ↔ alarm analytic bounds (cross-paper conversion)
-├── calibration.py      Brier decomposition · reliability · ECE
-├── surrogates.py       IoC surrogate distribution under chance
-├── report.py           MetricsReport — unifies sample + alarm in one object
-├── adapters.py         I/O adapters for common dataset / score formats
-├── plots.py            sensitivity-vs-FP/hr · IoC-vs-surrogate · cadence ablation ·
-│                       sample-vs-alarm scatter (the Andrade 2024 figure)
-└── papers/             paper-replica shims (one module per work)
-    ├── andrade2024.py
-    ├── cook2013.py
-    ├── karoly2017.py
-    ├── kuhlmann2018.py
-    ├── maturana2020.py
-    ├── proix2021.py
-    └── stirling2021.py
-```
-
 The split mirrors how the seizure-evaluation literature itself is
 organised — sample-based vs alarm-based vs the bridge — so a
 paper-faithful re-implementation lives in exactly one place.
@@ -134,7 +138,7 @@ paper-faithful re-implementation lives in exactly one place.
 `AlarmPolicy` is the single object that pins every reproducibility
 decision an alarm-based metric requires.
 
-## 5 Interfaces
+## 6 Interfaces
 
 <details open>
 <summary><b><code>scitex_seizure_metrics.forecasting</code></b> — alarm-based metrics with explicit AlarmPolicy (primary)</summary>
@@ -232,46 +236,6 @@ plots.metric_correlation_heatmap(per_patient_df)  # redundancy diagnostic
 ```
 
 </details>
-
-## Glossary
-
-Quick definitions for the metrics and policy knobs that recur throughout
-the README, the docstrings, and the cited papers.
-
-### Sample-based metrics
-
-| Term | Meaning |
-| --- | --- |
-| **AUROC** | Area Under the Receiver Operating Characteristic curve. Probability the model ranks a random positive window above a random negative window. Threshold-free; insensitive to class prevalence. |
-| **AUPRC** | Area Under the Precision–Recall curve. Threshold-free; **sensitive to class prevalence** — the value to read on heavily-imbalanced seizure data when AUROC looks deceptively high. |
-| **Brier** | Mean squared error between predicted probability and the 0/1 label. Lower is better. Decomposes into reliability + resolution + uncertainty (`scitex_seizure_metrics.calibration`). |
-| **MCC** | Matthews Correlation Coefficient. A single balanced summary statistic robust to class imbalance; ranges from −1 (anti-correlation) through 0 (chance) to +1 (perfect). |
-| **Balanced accuracy** | (Sensitivity + Specificity) / 2. The accuracy you would get if the prevalence were 50/50. |
-| **Sensitivity** (recall) | Fraction of true seizures detected. Reported at a chosen threshold. |
-| **Precision** (PPV) | Fraction of detections that were true seizures. Drops fast under low prevalence. |
-| **ECE** | Expected Calibration Error. Average gap between predicted probability and observed frequency across bins. |
-
-### Alarm-based metrics
-
-| Term | Meaning |
-| --- | --- |
-| **Alarm** | A single binary "warning is on" event derived from a thresholded probability stream + the `AlarmPolicy`. |
-| **FP/hr** (false-positive rate per hour) | Number of alarms not followed by a seizure within (SPH, SPH + SOP], normalised by the chosen denominator (`fp_denominator='total'` or `'interictal'`). |
-| **IoC** | Improvement over Chance. The signed gap between the model's alarm-based sensitivity and the same statistic recomputed under a chance-baseline alarm generator (`scitex_seizure_metrics.surrogates`, default Poisson). Significance is read from a surrogate distribution. |
-| **Time-in-warning** (TIW, "proportion time in warning") | Fraction of recording time spent inside an active warning window (between alarm onset and refractory end). The natural denominator that pairs with sensitivity in the Proix 2021 operating curve. |
-| **Sensitivity vs proportion-time-in-warning** | Operating curve introduced by Proix 2021. Plotted instead of sensitivity vs FP/hr when alarm refractory periods make per-hour counts misleading. Same x-axis units as Cook 2013's "time-in-warning" reporting. |
-| **Beats chance (alarm)** | Boolean — is the model's IoC above the surrogate distribution at the configured significance level? Andrade 2024's headline: 50/56 patients beat chance under sample-based eval but only 6/46 under alarm-based. |
-
-### `AlarmPolicy` knobs (every one is mandatory)
-
-| Knob | Meaning |
-| --- | --- |
-| **SPH** (`sph_seconds`) | Seizure-Prediction Horizon — minimum lead-time the alarm must precede the seizure. Alarms that fire later are not credited. |
-| **SOP** (`sop_seconds`) | Seizure-Occurrence Period — the window after SPH within which the predicted seizure must actually occur for the alarm to count as a true positive. Defines `[SPH, SPH + SOP]`. |
-| **Cadence** (`cadence_seconds`) | Sampling cadence of the alarm decision — how often a fresh "is the warning on?" decision is emitted from the probability stream. |
-| **Refractory** (`refractory_seconds`) | Post-alarm silent window during which no new alarm can fire. Suppresses bursts of redundant alarms around a single onset. |
-| **Alarm threshold** (`alarm_threshold`) | Probability cut-off above which the stream is binarised into an alarm. The threshold-sweep helpers iterate this. |
-| **FP denominator** (`fp_denominator`) | What FP/hr is normalised by — `'total'` (Cook 2013, Karoly 2017) or `'interictal'` (Mormann 2007 tradition). No silent default. |
 
 ## References
 
