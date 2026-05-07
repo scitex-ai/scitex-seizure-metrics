@@ -29,6 +29,7 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov", "matplotlib"]
 plots = ["matplotlib"]
+docs = ["sphinx>=7", "furo", "myst-parser"]
 
 [project.urls]
 Homepage = "https://github.com/ywatanabe1989/epileval"
