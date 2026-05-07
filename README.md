@@ -233,19 +233,6 @@ plots.metric_correlation_heatmap(per_patient_df)  # redundancy diagnostic
 
 </details>
 
-## Part of SciTeX
-
-`scitex-seizure-metrics` is part of [**SciTeX**](https://scitex.ai). Install via the umbrella with `pip install scitex-ml[seizure]` to use as `scitex_ml.metrics.seizure` (the seizure-evaluation namespace inside `scitex-ml`).
-
->Four Freedoms for Research
->
->0. The freedom to **run** your research anywhere — your machine, your terms.
->1. The freedom to **study** how every step works — from raw data to final manuscript.
->2. The freedom to **redistribute** your workflows, not just your papers.
->3. The freedom to **modify** any module and share improvements with the community.
->
->AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
-
 ## Glossary
 
 Quick definitions for the metrics and policy knobs that recur throughout
@@ -297,6 +284,19 @@ the README, the docstrings, and the cited papers.
 - Maturana MI et al. (2020). *Nature Communications*. [doi:10.1038/s41467-020-15908-3](https://doi.org/10.1038/s41467-020-15908-3).
 - Mormann F et al. (2007). Seizure prediction: the long and winding road. *Brain*. [doi:10.1093/brain/awl241](https://doi.org/10.1093/brain/awl241).
 - Schulze-Bonhage A et al. (2020). Performance Metrics for Online Seizure Prediction. [PMC7340210](https://pmc.ncbi.nlm.nih.gov/articles/PMC7340210/).
+
+## Part of SciTeX
+
+`scitex-seizure-metrics` is part of [**SciTeX**](https://scitex.ai). Install via the umbrella with `pip install scitex-ml[seizure]` to use as `scitex_ml.metrics.seizure` (the seizure-evaluation namespace inside `scitex-ml`).
+
+>Four Freedoms for Research
+>
+>0. The freedom to **run** your research anywhere — your machine, your terms.
+>1. The freedom to **study** how every step works — from raw data to final manuscript.
+>2. The freedom to **redistribute** your workflows, not just your papers.
+>3. The freedom to **modify** any module and share improvements with the community.
+>
+>AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
 
 ---
 
