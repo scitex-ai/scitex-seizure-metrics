@@ -1,0 +1,23 @@
+[project]
+name = "epileval"
+version = "0.3.0"
+description = "Standardised evaluation metrics for epileptic seizure detection and forecasting."
+authors = [{ name = "Yusuke Watanabe", email = "ywata1989@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "scikit-learn>=1.3",
+    "timescoring>=0.0.5",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/epileval"]

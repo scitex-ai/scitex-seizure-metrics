@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+.eggs/
+*.egg
+
+# venv
+.venv/
+venv/
+env/
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+*~
+.#*
+
+# scratch / GITIGNORED
+GITIGNORED/
+.tmp/
+*.log
+
+# generated artefacts
+/tmp/epileval-plots/
