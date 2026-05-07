@@ -34,3 +34,7 @@ GITIGNORED/
 
 # generated artefacts
 /tmp/epileval-plots/
+
+# Sphinx build artefacts (canonical layout)
+docs/sphinx/_build/
+docs/sphinx/_generated/

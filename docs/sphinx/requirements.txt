@@ -1,0 +1,10 @@
+sphinx>=7.0
+sphinx-rtd-theme>=2.0
+furo
+myst-parser>=2.0
+sphinx-copybutton>=0.5
+sphinx-autodoc-typehints>=1.25
+numpy
+pandas
+scikit-learn
+timescoring
