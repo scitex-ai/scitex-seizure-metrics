@@ -1,4 +1,4 @@
-# SciTeX Seizure Metrics (`scitex-seizure-metrics`)
+# SciTeX Seizure Metrics (<code>scitex-seizure-metrics</code>)
 
 <p align="center">
   <a href="https://scitex.ai">
