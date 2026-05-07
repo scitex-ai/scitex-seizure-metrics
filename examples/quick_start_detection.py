@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from epileval import detection
+from scitex_seizure_metrics import detection
 
 
 def main() -> None:

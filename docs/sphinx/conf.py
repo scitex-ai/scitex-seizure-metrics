@@ -1,4 +1,4 @@
-"""Sphinx configuration for epileval."""
+"""Sphinx configuration for scitex_seizure_metrics."""
 from __future__ import annotations
 
 import os
@@ -6,14 +6,14 @@ import sys
 
 sys.path.insert(0, os.path.abspath("../../src"))
 
-project = "epileval"
+project = "scitex_seizure_metrics"
 author = "Yusuke Watanabe"
 copyright = "2026, Yusuke Watanabe"
 
 try:
     from importlib.metadata import version as _v
 
-    release = _v("epileval")
+    release = _v("scitex_seizure_metrics")
 except Exception:
     release = "0.1.0"
 
@@ -30,7 +30,7 @@ exclude_patterns = []
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 
 html_theme = "furo"
-html_title = f"epileval {release}"
+html_title = f"scitex_seizure_metrics {release}"
 html_static_path = []
 
 intersphinx_mapping = {

@@ -1,5 +1,5 @@
 [project]
-name = "epileval"
+name = "scitex-seizure-metrics"
 version = "0.1.0"
 description = "Standardised evaluation metrics for epileptic seizure detection and forecasting."
 authors = [{ name = "Yusuke Watanabe", email = "ywata1989@gmail.com" }]
@@ -45,30 +45,30 @@ docs = [
     "sphinx-autodoc-typehints>=1.25",
 ]
 all = [
-    "epileval[plots]",
-    "epileval[docs]",
-    "epileval[dev]",
+    "scitex-seizure-metrics[plots]",
+    "scitex-seizure-metrics[docs]",
+    "scitex-seizure-metrics[dev]",
 ]
 
 [project.urls]
-Homepage = "https://github.com/ywatanabe1989/epileval"
-Repository = "https://github.com/ywatanabe1989/epileval"
-Documentation = "https://epileval.readthedocs.io"
-Issues = "https://github.com/ywatanabe1989/epileval/issues"
-Changelog = "https://github.com/ywatanabe1989/epileval/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/ywatanabe1989/scitex-seizure-metrics"
+Repository = "https://github.com/ywatanabe1989/scitex-seizure-metrics"
+Documentation = "https://scitex-seizure-metrics.readthedocs.io"
+Issues = "https://github.com/ywatanabe1989/scitex-seizure-metrics/issues"
+Changelog = "https://github.com/ywatanabe1989/scitex-seizure-metrics/blob/main/CHANGELOG.md"
 
 [project.entry-points."scitex_dev.docs"]
-epileval = "epileval"
+scitex_seizure_metrics = "scitex_seizure_metrics"
 
 [project.entry-points."scitex_dev.skills"]
-epileval = "epileval"
+scitex_seizure_metrics = "scitex_seizure_metrics"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/epileval"]
+packages = ["src/scitex_seizure_metrics"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -84,8 +84,8 @@ select = ["E", "F", "W", "I"]
 ignore = ["E501", "E402"]
 
 [tool.ruff.lint.per-file-ignores]
-"src/epileval/__init__.py" = ["E402", "F401"]
-"src/epileval/**/__init__.py" = ["F401"]
+"src/scitex_seizure_metrics/__init__.py" = ["E402", "F401"]
+"src/scitex_seizure_metrics/**/__init__.py" = ["F401"]
 
 [tool.scitex-linter]
 library_dirs = ["src", "tests", "examples"]

@@ -1,4 +1,4 @@
-# epileval
+# scitex_seizure_metrics
 
 <p align="center">
   <a href="https://scitex.ai">
@@ -9,16 +9,16 @@
 <p align="center"><b>Unified evaluation library for seizure detection and forecasting — sample-based, alarm-based, and the bridge between them.</b></p>
 
 <p align="center">
-  <a href="https://epileval.readthedocs.io/">Full Documentation</a> · <code>pip install epileval</code>
+  <a href="https://scitex_seizure_metrics.readthedocs.io/">Full Documentation</a> · <code>pip install scitex_seizure_metrics</code>
 </p>
 
 <!-- scitex-badges:start -->
 <p align="center">
-  <a href="https://pypi.org/project/epileval/"><img src="https://img.shields.io/pypi/v/epileval.svg" alt="PyPI"></a>
-  <a href="https://pypi.org/project/epileval/"><img src="https://img.shields.io/pypi/pyversions/epileval.svg" alt="Python"></a>
-  <a href="https://github.com/ywatanabe1989/epileval/actions/workflows/test.yml"><img src="https://github.com/ywatanabe1989/epileval/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
-  <a href="https://codecov.io/gh/ywatanabe1989/epileval"><img src="https://codecov.io/gh/ywatanabe1989/epileval/graph/badge.svg" alt="Coverage"></a>
-  <a href="https://epileval.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/epileval/badge/?version=latest" alt="Docs"></a>
+  <a href="https://pypi.org/project/scitex_seizure_metrics/"><img src="https://img.shields.io/pypi/v/scitex_seizure_metrics.svg" alt="PyPI"></a>
+  <a href="https://pypi.org/project/scitex_seizure_metrics/"><img src="https://img.shields.io/pypi/pyversions/scitex_seizure_metrics.svg" alt="Python"></a>
+  <a href="https://github.com/ywatanabe1989/scitex_seizure_metrics/actions/workflows/test.yml"><img src="https://github.com/ywatanabe1989/scitex_seizure_metrics/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
+  <a href="https://codecov.io/gh/ywatanabe1989/scitex_seizure_metrics"><img src="https://codecov.io/gh/ywatanabe1989/scitex_seizure_metrics/graph/badge.svg" alt="Coverage"></a>
+  <a href="https://scitex_seizure_metrics.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/scitex_seizure_metrics/badge/?version=latest" alt="Docs"></a>
   <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/license-AGPL_v3-blue.svg" alt="License: AGPL v3"></a>
 </p>
 <!-- scitex-badges:end -->
@@ -43,18 +43,18 @@
 | `PySeizure` ([2025](https://arxiv.org/html/2508.07253)) | Python | ✅ | ❌ | ❌ | ❌ | ❌ | early — focused on detection |
 | `SeizyML` ([2024](https://pmc.ncbi.nlm.nih.gov/articles/PMC11160878/)) | Python | ✅ | ✅ | ❌ | ❌ | ❌ | detection scope |
 | Andrade et al. 2024 (paper) | — | ✅ | ✅ | ✅ | ✅ | ❌ | research code, not a package |
-| **epileval** | Python | ✅ | ✅ | ✅ | ✅ | ✅ | this repo |
+| **scitex_seizure_metrics** | Python | ✅ | ✅ | ✅ | ✅ | ✅ | this repo |
 
 ## Installation
 
 ```bash
-pip install epileval
+pip install scitex_seizure_metrics
 ```
 
 ## Quick Start
 
 ```python
-from epileval import detection, forecasting, AlarmPolicy
+from scitex_seizure_metrics import detection, forecasting, AlarmPolicy
 
 # Detection — per-window classification
 rep = detection.evaluate(y_true, y_proba, threshold=0.5, fs=1)
@@ -100,10 +100,10 @@ flowchart LR
 
 ## Architecture
 
-Module layout under `src/epileval/`:
+Module layout under `src/scitex_seizure_metrics/`:
 
 ```
-epileval/
+scitex_seizure_metrics/
 ├── detection.py        sample-based metric pipeline (AUROC, AUPRC, Brier, MCC, ...)
 ├── forecasting.py      alarm-based pipeline — evaluate_stream, sweep_thresholds,
 │                       sweep_policies (cadence ablation)
@@ -137,10 +137,10 @@ decision an alarm-based metric requires.
 ## 5 Interfaces
 
 <details open>
-<summary><b><code>epileval.forecasting</code></b> — alarm-based metrics with explicit AlarmPolicy (primary)</summary>
+<summary><b><code>scitex_seizure_metrics.forecasting</code></b> — alarm-based metrics with explicit AlarmPolicy (primary)</summary>
 
 ```python
-from epileval import AlarmPolicy, forecasting
+from scitex_seizure_metrics import AlarmPolicy, forecasting
 
 policy = AlarmPolicy(
     sph_seconds=300, sop_seconds=600, cadence_seconds=60,
@@ -164,10 +164,10 @@ df = forecasting.sweep_policies(proba, times, seizures, policies)
 </details>
 
 <details>
-<summary><b><code>epileval.detection</code></b> — sample-based metrics (AUROC, AUPRC, Brier, MCC, ...)</summary>
+<summary><b><code>scitex_seizure_metrics.detection</code></b> — sample-based metrics (AUROC, AUPRC, Brier, MCC, ...)</summary>
 
 ```python
-from epileval import detection
+from scitex_seizure_metrics import detection
 rep = detection.evaluate(y_true, y_proba, threshold=0.5, fs=1)
 print(rep.roc_auc, rep.pr_auc, rep.brier, rep.mcc, rep.balanced_accuracy)
 ```
@@ -175,10 +175,10 @@ print(rep.roc_auc, rep.pr_auc, rep.brier, rep.mcc, rep.balanced_accuracy)
 </details>
 
 <details>
-<summary><b><code>epileval.bridge</code></b> — sample↔alarm analytic bounds for cross-paper comparison</summary>
+<summary><b><code>scitex_seizure_metrics.bridge</code></b> — sample↔alarm analytic bounds for cross-paper comparison</summary>
 
 ```python
-from epileval import bridge
+from scitex_seizure_metrics import bridge
 
 bnd = bridge.sample_to_alarm(
     sample_sensitivity=0.79, sample_specificity=0.85,
@@ -190,10 +190,10 @@ print(bnd.alarm_sensitivity_upper, bnd.fp_per_hour_upper)
 </details>
 
 <details>
-<summary><b><code>epileval.papers</code></b> — paper-replica shims (Karoly 2017, Maturana 2020, Kuhlmann 2018, Andrade 2024)</summary>
+<summary><b><code>scitex_seizure_metrics.papers</code></b> — paper-replica shims (Karoly 2017, Maturana 2020, Kuhlmann 2018, Andrade 2024)</summary>
 
 ```python
-from epileval.papers import andrade2024
+from scitex_seizure_metrics.papers import andrade2024
 out = andrade2024.metrics(
     y_true=labels, y_proba=preds,
     times_seconds=times, seizure_times=onsets,
@@ -207,10 +207,10 @@ Available shims: `karoly2017`, `maturana2020`, `kuhlmann2018`, `andrade2024`. Ea
 </details>
 
 <details>
-<summary><b><code>epileval.calibration</code></b> — Brier decomposition + reliability diagram</summary>
+<summary><b><code>scitex_seizure_metrics.calibration</code></b> — Brier decomposition + reliability diagram</summary>
 
 ```python
-from epileval import calibration, plots
+from scitex_seizure_metrics import calibration, plots
 cal = calibration.calibration_report(y_true, y_proba, n_bins=10)
 print(cal.brier, cal.reliability, cal.resolution, cal.uncertainty,
       cal.expected_calibration_error)
@@ -220,10 +220,10 @@ plots.reliability_diagram(cal)
 </details>
 
 <details>
-<summary><b><code>epileval.plots</code></b> — relationships between metrics</summary>
+<summary><b><code>scitex_seizure_metrics.plots</code></b> — relationships between metrics</summary>
 
 ```python
-from epileval import plots
+from scitex_seizure_metrics import plots
 plots.sensitivity_vs_fp_per_hour(sweep_df)        # operating curve
 plots.ioc_vs_surrogate(sweep_df)                  # model vs chance
 plots.cadence_ablation(policy_sweep_df)           # FP/hr vs cadence
@@ -235,7 +235,7 @@ plots.metric_correlation_heatmap(per_patient_df)  # redundancy diagnostic
 
 ## Part of SciTeX
 
-`epileval` is part of [**SciTeX**](https://scitex.ai). Install via the umbrella with `pip install scitex[epileval]` and import as `scitex.epileval`.
+`scitex_seizure_metrics` is part of [**SciTeX**](https://scitex.ai). Install via the umbrella with `pip install scitex[scitex_seizure_metrics]` and import as `scitex.scitex_seizure_metrics`.
 
 >Four Freedoms for Research
 >
@@ -257,7 +257,7 @@ the README, the docstrings, and the cited papers.
 | --- | --- |
 | **AUROC** | Area Under the Receiver Operating Characteristic curve. Probability the model ranks a random positive window above a random negative window. Threshold-free; insensitive to class prevalence. |
 | **AUPRC** | Area Under the Precision–Recall curve. Threshold-free; **sensitive to class prevalence** — the value to read on heavily-imbalanced seizure data when AUROC looks deceptively high. |
-| **Brier** | Mean squared error between predicted probability and the 0/1 label. Lower is better. Decomposes into reliability + resolution + uncertainty (`epileval.calibration`). |
+| **Brier** | Mean squared error between predicted probability and the 0/1 label. Lower is better. Decomposes into reliability + resolution + uncertainty (`scitex_seizure_metrics.calibration`). |
 | **MCC** | Matthews Correlation Coefficient. A single balanced summary statistic robust to class imbalance; ranges from −1 (anti-correlation) through 0 (chance) to +1 (perfect). |
 | **Balanced accuracy** | (Sensitivity + Specificity) / 2. The accuracy you would get if the prevalence were 50/50. |
 | **Sensitivity** (recall) | Fraction of true seizures detected. Reported at a chosen threshold. |
@@ -270,7 +270,7 @@ the README, the docstrings, and the cited papers.
 | --- | --- |
 | **Alarm** | A single binary "warning is on" event derived from a thresholded probability stream + the `AlarmPolicy`. |
 | **FP/hr** (false-positive rate per hour) | Number of alarms not followed by a seizure within (SPH, SPH + SOP], normalised by the chosen denominator (`fp_denominator='total'` or `'interictal'`). |
-| **IoC** | Improvement over Chance. The signed gap between the model's alarm-based sensitivity and the same statistic recomputed under a chance-baseline alarm generator (`epileval.surrogates`, default Poisson). Significance is read from a surrogate distribution. |
+| **IoC** | Improvement over Chance. The signed gap between the model's alarm-based sensitivity and the same statistic recomputed under a chance-baseline alarm generator (`scitex_seizure_metrics.surrogates`, default Poisson). Significance is read from a surrogate distribution. |
 | **Time-in-warning** (TIW, "proportion time in warning") | Fraction of recording time spent inside an active warning window (between alarm onset and refractory end). The natural denominator that pairs with sensitivity in the Proix 2021 operating curve. |
 | **Sensitivity vs proportion-time-in-warning** | Operating curve introduced by Proix 2021. Plotted instead of sensitivity vs FP/hr when alarm refractory periods make per-hour counts misleading. Same x-axis units as Cook 2013's "time-in-warning" reporting. |
 | **Beats chance (alarm)** | Boolean — is the model's IoC above the surrogate distribution at the configured significance level? Andrade 2024's headline: 50/56 patients beat chance under sample-based eval but only 6/46 under alarm-based. |

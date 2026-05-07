@@ -1,4 +1,4 @@
-# epileval — thin Makefile dispatcher.
+# scitex_seizure_metrics — thin Makefile dispatcher.
 # All real logic lives in pyproject.toml + scripts/. Keep this short.
 
 .PHONY: help install install-dev test test-fast lint format clean build docs
@@ -21,7 +21,7 @@ install-dev:
 	pip install -e ".[dev]"
 
 test:
-	pytest tests/ --cov=src/epileval --cov-report=term-missing
+	pytest tests/ --cov=src/scitex_seizure_metrics --cov-report=term-missing
 
 test-fast:
 	pytest tests/ -x -q

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from epileval import AlarmPolicy, forecasting
+from scitex_seizure_metrics import AlarmPolicy, forecasting
 
 
 def main() -> None:
