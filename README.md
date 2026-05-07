@@ -53,7 +53,8 @@
 Quick definitions for the metrics and policy knobs that recur throughout
 the README, the docstrings, and the cited papers.
 
-### Sample-based metrics
+<details>
+<summary><b>Sample-based metrics</b></summary>
 
 | Term | Meaning |
 | --- | --- |
@@ -66,7 +67,10 @@ the README, the docstrings, and the cited papers.
 | **Precision** (PPV) | Fraction of detections that were true seizures. Drops fast under low prevalence. |
 | **ECE** | Expected Calibration Error. Average gap between predicted probability and observed frequency across bins. |
 
-### Alarm-based metrics
+</details>
+
+<details>
+<summary><b>Alarm-based metrics</b></summary>
 
 | Term | Meaning |
 | --- | --- |
@@ -77,16 +81,12 @@ the README, the docstrings, and the cited papers.
 | **Sensitivity vs proportion-time-in-warning** | Operating curve introduced by Proix 2021. Plotted instead of sensitivity vs FP/hr when alarm refractory periods make per-hour counts misleading. Same x-axis units as Cook 2013's "time-in-warning" reporting. |
 | **Beats chance (alarm)** | Boolean — is the model's IoC above the surrogate distribution at the configured significance level? Andrade 2024's headline: 50/56 patients beat chance under sample-based eval but only 6/46 under alarm-based. |
 
-### `AlarmPolicy` knobs (every one is mandatory)
+</details>
 
-| Knob | Meaning |
-| --- | --- |
-| **SPH** (`sph_seconds`) | Seizure-Prediction Horizon — minimum lead-time the alarm must precede the seizure. Alarms that fire later are not credited. |
-| **SOP** (`sop_seconds`) | Seizure-Occurrence Period — the window after SPH within which the predicted seizure must actually occur for the alarm to count as a true positive. Defines `[SPH, SPH + SOP]`. |
-| **Cadence** (`cadence_seconds`) | Sampling cadence of the alarm decision — how often a fresh "is the warning on?" decision is emitted from the probability stream. |
-| **Refractory** (`refractory_seconds`) | Post-alarm silent window during which no new alarm can fire. Suppresses bursts of redundant alarms around a single onset. |
-| **Alarm threshold** (`alarm_threshold`) | Probability cut-off above which the stream is binarised into an alarm. The threshold-sweep helpers iterate this. |
-| **FP denominator** (`fp_denominator`) | What FP/hr is normalised by — `'total'` (Cook 2013, Karoly 2017) or `'interictal'` (Mormann 2007 tradition). No silent default. |
+> The `AlarmPolicy` config knobs (SPH · SOP · cadence · refractory ·
+> alarm-threshold · FP-denominator) are documented inline on the
+> dataclass and shown in the forecasting example below — they pin
+> alarm-derivation, not metric definitions.
 
 ## Installation
 
