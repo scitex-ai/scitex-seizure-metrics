@@ -37,13 +37,13 @@
 
 | Tool | Language | Sample-based | Event-based | Forecasting (SPH/SOP) | IoC vs surrogate | Cross-paper convertor | Status |
 |---|---|---|---|---|---|---|---|
-| `timescoring` (SzCORE engine, [Dan et al. 2024](https://doi.org/10.1111/epi.18113)) | Python | ✓ | ✓ | ✗ | ✗ | ✗ | active |
-| `szcore-evaluation` (BIDS wrapper) | Python | ✓ | ✓ | ✗ | ✗ | ✗ | active |
-| `EPILAB` ([Direito et al. 2011](https://doi.org/10.1016/j.jneumeth.2011.06.022)) | MATLAB | ✓ | partial | ✓ | ✓ | ✗ | dead since 2018 |
-| `PySeizure` ([2025](https://arxiv.org/html/2508.07253)) | Python | ✓ | ✗ | ✗ | ✗ | ✗ | very new, narrow |
-| `SeizyML` ([2024](https://pmc.ncbi.nlm.nih.gov/articles/PMC11160878/)) | Python | ✓ | ✓ | ✗ | ✗ | ✗ | detection-only |
-| Andrade et al. 2024 (paper) | — | ✓ | ✓ | ✓ | ✓ | ✗ | not packaged |
-| **epileval** | Python | ✓ | ✓ | ✓ | ✓ | ✓ | active |
+| `timescoring` (SzCORE engine, [Dan et al. 2024](https://doi.org/10.1111/epi.18113)) | Python | ✅ | ✅ | ❌ | ❌ | ❌ | maintained |
+| `szcore-evaluation` (BIDS wrapper) | Python | ✅ | ✅ | ❌ | ❌ | ❌ | maintained |
+| `EPILAB` ([Direito et al. 2011](https://doi.org/10.1016/j.jneumeth.2011.06.022)) | MATLAB | ✅ | ◐ | ✅ | ✅ | ❌ | last release 2018 |
+| `PySeizure` ([2025](https://arxiv.org/html/2508.07253)) | Python | ✅ | ❌ | ❌ | ❌ | ❌ | early — focused on detection |
+| `SeizyML` ([2024](https://pmc.ncbi.nlm.nih.gov/articles/PMC11160878/)) | Python | ✅ | ✅ | ❌ | ❌ | ❌ | detection scope |
+| Andrade et al. 2024 (paper) | — | ✅ | ✅ | ✅ | ✅ | ❌ | research code, not a package |
+| **epileval** | Python | ✅ | ✅ | ✅ | ✅ | ✅ | this repo |
 
 ## Installation
 
