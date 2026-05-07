@@ -75,6 +75,65 @@ print(rep.sensitivity, rep.fp_per_hour, rep.ioc, rep.time_in_warning_frac)
 
 See `examples/quick_start_detection.py` and `examples/quick_start_forecasting.py`.
 
+## Demo
+
+Two runnable scripts ship under `examples/`:
+
+- [`quick_start_detection.py`](examples/quick_start_detection.py) — sample-based
+  evaluation on a synthetic per-window probability stream; prints `roc_auc`,
+  `pr_auc`, `brier`, `mcc`, `balanced_accuracy`.
+- [`quick_start_forecasting.py`](examples/quick_start_forecasting.py) —
+  alarm-based evaluation with an explicit `AlarmPolicy`; prints
+  `sensitivity`, `fp_per_hour`, `ioc`, `time_in_warning_frac` and runs an
+  IoC surrogate test.
+
+```mermaid
+flowchart LR
+    Probs[per-window proba<br/>+ ground truth] --> Det[detection.evaluate]
+    Probs --> StreamIn[forecasting.evaluate_stream]
+    Policy[AlarmPolicy<br/>SPH · SOP · cadence · refractory · FP denom] --> StreamIn
+    Det --> RepDet[MetricsReport<br/>AUROC · AUPRC · Brier · MCC]
+    StreamIn --> RepFc[MetricsReport<br/>sensitivity · FP/hr · IoC · TIW]
+    RepDet -. bridge.sample_to_alarm .-> RepFc
+    RepFc --> Plots[plots.sensitivity_vs_fp_per_hour · ioc_vs_surrogate · cadence_ablation]
+```
+
+## Architecture
+
+Module layout under `src/epileval/`:
+
+```
+epileval/
+├── detection.py        sample-based metric pipeline (AUROC, AUPRC, Brier, MCC, ...)
+├── forecasting.py      alarm-based pipeline — evaluate_stream, sweep_thresholds,
+│                       sweep_policies (cadence ablation)
+├── policy.py           AlarmPolicy dataclass — SPH · SOP · cadence · refractory ·
+│                       fp_denominator (no silent defaults)
+├── _alarm.py           internal alarm-derivation (private)
+├── bridge.py           sample ↔ alarm analytic bounds (cross-paper conversion)
+├── calibration.py      Brier decomposition · reliability · ECE
+├── surrogates.py       IoC surrogate distribution under chance
+├── report.py           MetricsReport — unifies sample + alarm in one object
+├── adapters.py         I/O adapters for common dataset / score formats
+├── plots.py            sensitivity-vs-FP/hr · IoC-vs-surrogate · cadence ablation ·
+│                       sample-vs-alarm scatter (the Andrade 2024 figure)
+└── papers/             paper-replica shims (one module per work)
+    ├── andrade2024.py
+    ├── cook2013.py
+    ├── karoly2017.py
+    ├── kuhlmann2018.py
+    ├── maturana2020.py
+    ├── proix2021.py
+    └── stirling2021.py
+```
+
+The split mirrors how the seizure-evaluation literature itself is
+organised — sample-based vs alarm-based vs the bridge — so a
+paper-faithful re-implementation lives in exactly one place.
+`MetricsReport` is the single object that travels between regimes;
+`AlarmPolicy` is the single object that pins every reproducibility
+decision an alarm-based metric requires.
+
 ## 5 Interfaces
 
 <details open>
