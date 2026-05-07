@@ -43,7 +43,7 @@
 | `PySeizure` ([2025](https://arxiv.org/html/2508.07253)) | Python | ✅ | ❌ | ❌ | ❌ | ❌ | early — focused on detection |
 | `SeizyML` ([2024](https://pmc.ncbi.nlm.nih.gov/articles/PMC11160878/)) | Python | ✅ | ✅ | ❌ | ❌ | ❌ | detection scope |
 | Andrade et al. 2024 (paper) | — | ✅ | ✅ | ✅ | ✅ | ❌ | research code, not a package |
-| **scitex_seizure_metrics** | Python | ✅ | ✅ | ✅ | ✅ | ✅ | this repo |
+| **scitex-seizure-metrics** | Python | ✅ | ✅ | ✅ | ✅ | ✅ | this repo |
 
 ## Installation
 
@@ -235,7 +235,7 @@ plots.metric_correlation_heatmap(per_patient_df)  # redundancy diagnostic
 
 ## Part of SciTeX
 
-`scitex_seizure_metrics` is part of [**SciTeX**](https://scitex.ai). Install via the umbrella with `pip install scitex[scitex_seizure_metrics]` and import as `scitex.scitex_seizure_metrics`.
+`scitex-seizure-metrics` is part of [**SciTeX**](https://scitex.ai). Install via the umbrella with `pip install scitex-ml[seizure]` to use as `scitex_ml.metrics.seizure` (the seizure-evaluation namespace inside `scitex-ml`).
 
 >Four Freedoms for Research
 >

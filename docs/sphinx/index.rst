@@ -1,5 +1,5 @@
-scitex_seizure_metrics
-========
+scitex-seizure-metrics
+======================
 
 Unified evaluation library for seizure detection and forecasting.
 
