@@ -24,7 +24,7 @@ jobs:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-signatures: "signatures/v1/cla.json"
-          path-to-document: "https://github.com/ywatanabe1989/epileval/blob/main/CLA.md"
+          path-to-document: "https://github.com/ywatanabe1989/scitex-seizure-metrics/blob/main/CLA.md"
           branch: "main"
           allowlist: ywatanabe1989,bot*
           remote-organization-name: ywatanabe1989
@@ -33,4 +33,4 @@ jobs:
           custom-allsigned-prcomment: |
             All Contributors have signed the CLA. Thank you!
 
-            Please sign the [SciTeX CLA](https://github.com/ywatanabe1989/epileval/blob/main/CLA.md)
+            Please sign the [SciTeX CLA](https://github.com/ywatanabe1989/scitex-seizure-metrics/blob/main/CLA.md)
