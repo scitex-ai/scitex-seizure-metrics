@@ -34,7 +34,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-timeout",
     "ruff",
-    "scitex-dev>=0.11.5",
+    "scitex-dev>=0.11.7",
     "matplotlib",
 ]
 docs = [
