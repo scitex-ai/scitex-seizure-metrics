@@ -9,7 +9,7 @@
 <p align="center"><b>Unified evaluation library for seizure detection and forecasting — sample-based, alarm-based, and the bridge between them.</b></p>
 
 <p align="center">
-  <a href="https://scitex-seizure-metrics.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-seizure-metrics</code>
+  <a href="https://scitex-seizure-metrics.readthedocs.io/">Full Documentation</a> · <code>uv pip install scitex-seizure-metrics[all]</code>
 </p>
 
 <!-- scitex-badges:start -->
