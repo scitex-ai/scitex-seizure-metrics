@@ -1,12 +1,12 @@
 ---
-name: scitex_seizure_metrics
+name: scitex-seizure-metrics
 description: |
   [WHAT] Unified evaluation library for seizure detection and forecasting — sample-based metrics (AUROC, AUPRC, Brier, MCC), alarm-based metrics with a required AlarmPolicy (sensitivity, FP/hr, IoC, time-in-warning), and analytic bridge bounds between the two regimes. Paper-replica shims (Cook 2013, Karoly 2017, Kuhlmann 2018, Maturana 2020, Proix 2021, Stirling 2021, Andrade 2024) drop new methods onto each paper's exact metric axis.
   [WHEN] Use whenever you need to report a seizure-detection or seizure-forecasting method on more than one paper's metric set, audit the sample-vs-alarm regime gap (Andrade 2024), or pin every reproducibility knob (SPH, SOP, cadence, refractory, FP-denominator) with no silent defaults.
   [HOW] `from scitex_seizure_metrics import detection, forecasting, AlarmPolicy` — call `detection.evaluate(y_true, y_proba)` for sample-based, `forecasting.evaluate_stream(proba, times, seizures, AlarmPolicy(...))` for alarm-based, and `bridge.sample_to_alarm(...)` when only one regime was published.
 primary_interface: python
 interfaces: {python: 3, cli: 0, mcp: 0, skills: 2, hook: 0, http: 0}
-tags: [scitex_seizure_metrics]
+tags: [scitex-seizure-metrics]
 ---
 
 # scitex_seizure_metrics
@@ -20,6 +20,7 @@ re-running anyone's pipeline.
 
 * [01_installation.md](01_installation.md) — install scitex_seizure_metrics and its `[plots]` / `[test]` / `[dev]` / `[docs]` / `[all]` extras; umbrella `pip install scitex[scitex_seizure_metrics]`.
 * [02_quick-start.md](02_quick-start.md) — end-to-end recipes for `detection.evaluate`, `forecasting.evaluate_stream` (with required `AlarmPolicy`), threshold + cadence sweeps, `bridge.sample_to_alarm`, and the Andrade 2024 paper-replica.
+* [03_python-api.md](03_python-api.md) — public surface reference: `detection`, `forecasting`, `bridge`, `AlarmPolicy`, paper-replica shims.
 
 ## Quick reference
 

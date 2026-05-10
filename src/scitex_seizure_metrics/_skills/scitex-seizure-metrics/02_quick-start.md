@@ -2,7 +2,7 @@
 description: |
   [TOPIC] scitex_seizure_metrics Quick Start
   [DETAILS] Minimal end-to-end recipes for the three core entry points — `detection.evaluate(y_true, y_proba)` for sample-based metrics (AUROC / AUPRC / Brier / MCC), `forecasting.evaluate_stream(proba, times, seizures, AlarmPolicy(...))` for alarm-based metrics (sensitivity / FP-per-hour / IoC / time-in-warning), and `bridge.sample_to_alarm(...)` for cross-paper conversion bounds. Plus the threshold + cadence sweep helpers and the Andrade 2024 paper-replica shim. Each recipe is a 3-8 line snippet that returns a `MetricsReport`.
-tags: [scitex_seizure_metrics-quick-start]
+tags: [scitex-seizure-metrics-quick-start]
 ---
 
 # Quick start

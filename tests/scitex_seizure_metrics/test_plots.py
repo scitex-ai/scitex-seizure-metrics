@@ -1,7 +1,7 @@
 """Smoke tests for plot generators — assert no crash + axis labels set.
 
 We don't visually verify; we rely on the upstream calls being shape-
-correct. Generated artefacts are saved to /tmp/scitex_seizure_metrics-plots/ for
+correct. Generated artefacts are saved to /tmp/scitex-seizure-metrics-plots/ for
 manual inspection.
 """
 from __future__ import annotations
@@ -18,7 +18,7 @@ import pytest
 from scitex_seizure_metrics import AlarmPolicy, forecasting, plots
 
 
-PLOT_DIR = "/tmp/scitex_seizure_metrics-plots"
+PLOT_DIR = "/tmp/scitex-seizure-metrics-plots"
 os.makedirs(PLOT_DIR, exist_ok=True)
 
 

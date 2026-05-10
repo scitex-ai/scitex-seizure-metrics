@@ -94,6 +94,30 @@ the README, the docstrings, and the cited papers.
 pip install scitex-seizure-metrics
 ```
 
+## Demo
+
+```python
+from scitex_seizure_metrics import detection, forecasting, AlarmPolicy
+
+# Per-window detection metrics (sensitivity, false-positives/hour, ...)
+m = detection.evaluate(y_true=labels, y_pred=preds, fs=256)
+print(m["sensitivity"], m["fp_per_hour"])
+
+# Forecasting metrics (Improvement-over-chance, AUROC, alarm count)
+f = forecasting.evaluate(
+    seizure_times=onsets, alarm_times=alarms, policy=AlarmPolicy.STANDARD
+)
+print(f["ioc"], f["auroc"])
+```
+
+```mermaid
+graph LR
+    Labels["per-window y_true / y_pred"] --> Det["detection.evaluate"]
+    Onsets["seizure_times + alarm_times"] --> Fore["forecasting.evaluate"]
+    Det --> Out["sensitivity / FP-per-hour / latency"]
+    Fore --> Out2["IoC / AUROC / alarm count"]
+```
+
 ## Quick Start
 
 ```python
@@ -251,7 +275,7 @@ plots.metric_correlation_heatmap(per_patient_df)  # redundancy diagnostic
 
 ## Part of SciTeX
 
-`scitex-seizure-metrics` is part of [**SciTeX**](https://scitex.ai). Install via the umbrella with `pip install scitex-ml[seizure]` to use as `scitex_ml.metrics.seizure` (the seizure-evaluation namespace inside `scitex-ml`).
+`scitex-seizure-metrics` is part of [**SciTeX**](https://scitex.ai). Install via the umbrella with `pip install scitex[seizure-metrics]` to use as `scitex.seizure_metrics` (the seizure-evaluation surface re-exported from this peer; equivalent to `scitex-ml[seizure]` / `scitex_ml.metrics.seizure` for users who only want this slice without the rest of `scitex-ml`).
 
 >Four Freedoms for Research
 >

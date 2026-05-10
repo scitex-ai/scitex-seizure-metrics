@@ -2,7 +2,7 @@
 description: |
   [TOPIC] scitex_seizure_metrics Installation
   [DETAILS] How to install scitex_seizure_metrics and its optional extras — `[plots]` for matplotlib, `[test]` / `[dev]` for the test/lint stack, `[docs]` for Sphinx, `[all]` for everything; through the SciTeX umbrella as `pip install scitex[scitex_seizure_metrics]`; editable contributor install with `pip install -e ".[dev]"` and `make test` / `make docs`. Python 3.10+ supported.
-tags: [scitex_seizure_metrics-installation]
+tags: [scitex-seizure-metrics-installation]
 ---
 
 # Installation
