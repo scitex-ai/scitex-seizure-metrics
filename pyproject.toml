@@ -1,6 +1,6 @@
 [project]
 name = "scitex-seizure-metrics"
-version = "0.1.0"
+version = "0.1.1"
 description = "Standardised evaluation metrics for epileptic seizure detection and forecasting."
 authors = [{ name = "Yusuke Watanabe", email = "ywata1989@gmail.com" }]
 readme = "README.md"
