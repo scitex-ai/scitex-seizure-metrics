@@ -24,15 +24,4 @@ def test_audit_all_clean():
         )
     from scitex_dev.testing import audit_all_for_package
 
-    audit_all_for_package(
-        "scitex-seizure-metrics",
-        skip_rules=(
-            # README missing umbrella one-liner + ## Demo. Tracked with
-            # the next docs refresh.
-            "PS-120",
-            "PS-141",
-            # SKILL.md missing under _skills/scitex-seizure-metrics/.
-            # Tracked alongside the next docs refresh.
-            "SK-102",
-        ),
-    )
+    audit_all_for_package("scitex-seizure-metrics")
