@@ -45,6 +45,7 @@ jobs:
       - name: Run newb (verbose so the log shows per-prompt timing)
         env:
           NEWB_ANTHROPIC_API_KEY: ${{ secrets.NEWB_ANTHROPIC_API_KEY }}
+          NEWB_CLAUDE_CODE_CREDENTIALS_JSON: ${{ secrets.NEWB_CLAUDE_CODE_CREDENTIALS_JSON }}
           # Resource caps so an attacker who hijacked the docs-reading
           # agent can't DoS via memory/pid exhaustion. Generous enough
           # for pip wheel-building (~1-2 GB transient peak).
