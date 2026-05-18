@@ -13,24 +13,21 @@ permissions:
   statuses: write
 
 jobs:
-  CLAAssistant:
+  CLAssistant:
     runs-on: ubuntu-latest
     steps:
-      - name: "CLA Assistant"
-        if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA') || github.event_name == 'pull_request_target'
+      - name: CLA Assistant
         uses: contributor-assistant/github-action@v2.6.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.CLA_PERSONAL_ACCESS_TOKEN }}
         with:
-          path-to-signatures: "signatures/v1/cla.json"
+          path-to-signatures: "signatures/cla.json"
           path-to-document: "https://github.com/ywatanabe1989/scitex-seizure-metrics/blob/main/CLA.md"
-          branch: "main"
-          allowlist: ywatanabe1989,bot*
-          remote-organization-name: ywatanabe1989
-          remote-repository-name: cla-signatures
-          custom-pr-sign-comment: "I have read the CLA Document and I hereby sign the CLA"
+          branch: "cla-signatures"
+          allowlist: bot*,ywatanabe1989
           custom-allsigned-prcomment: |
-            All Contributors have signed the CLA. Thank you!
-
-            Please sign the [SciTeX CLA](https://github.com/ywatanabe1989/scitex-seizure-metrics/blob/main/CLA.md)
+            Thank you for signing the SciTeX CLA. Your contribution can now be reviewed.
+          custom-notsigned-prcomment: |
+            Please sign the [SciTeX CLA](https://github.com/ywatanabe1989/scitex-seizure-metrics/blob/main/CLA.md) before your contribution can be merged.
+            Comment `I have read and agree to the SciTeX CLA.` to sign.
