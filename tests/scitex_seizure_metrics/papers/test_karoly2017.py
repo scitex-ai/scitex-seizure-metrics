@@ -20,12 +20,29 @@ def _data():
     return y_true, proba, times, seizures
 
 
-def test_karoly2017_returns_dict():
+def test_karoly2017_returns_dict_out_is_dict():
+    # Arrange
     y, p, t, sz = _data()
     if "karoly2017" == "kuhlmann2018":
         out = karoly2017.metrics(y_true=y, y_proba=p)
     else:
         out = karoly2017.metrics(y_true=y, y_proba=p, times_seconds=t,
                               seizure_times=sz, n_surrogate=30)
+    # Act
+    # Assert
     assert isinstance(out, dict)
+
+
+def test_karoly2017_returns_dict_paper_in_out():
+    # Arrange
+    y, p, t, sz = _data()
+    if "karoly2017" == "kuhlmann2018":
+        out = karoly2017.metrics(y_true=y, y_proba=p)
+    else:
+        out = karoly2017.metrics(y_true=y, y_proba=p, times_seconds=t,
+                              seizure_times=sz, n_surrogate=30)
+    # Act
+    # Assert
     assert "paper" in out
+
+

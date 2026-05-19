@@ -20,7 +20,8 @@ def _data():
     return y_true, proba, times, seizures
 
 
-def test_proix2021_returns_dict():
+def test_proix2021_returns_dict_out_is_dict():
+    # Arrange
     y, p, t, sz = _data()
     if "proix2021" == "cook2013":
         out = proix2021.metrics(y_proba=p, times_seconds=t,
@@ -31,5 +32,25 @@ def test_proix2021_returns_dict():
     elif "proix2021" == "stirling2021":
         out = proix2021.metrics(y_true=y, y_proba=p, times_seconds=t,
                               seizure_times=sz, n_surrogate=30)
+    # Act
+    # Assert
     assert isinstance(out, dict)
+
+
+def test_proix2021_returns_dict_out_paper_proix2021():
+    # Arrange
+    y, p, t, sz = _data()
+    if "proix2021" == "cook2013":
+        out = proix2021.metrics(y_proba=p, times_seconds=t,
+                              seizure_times=sz, n_surrogate=30)
+    elif "proix2021" == "proix2021":
+        out = proix2021.metrics(y_proba=p, times_seconds=t,
+                              seizure_times=sz, n_surrogate=30)
+    elif "proix2021" == "stirling2021":
+        out = proix2021.metrics(y_true=y, y_proba=p, times_seconds=t,
+                              seizure_times=sz, n_surrogate=30)
+    # Act
+    # Assert
     assert out["paper"] == "proix2021"
+
+
