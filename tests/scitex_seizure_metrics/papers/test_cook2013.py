@@ -20,7 +20,8 @@ def _data():
     return y_true, proba, times, seizures
 
 
-def test_cook2013_returns_dict():
+def test_cook2013_returns_dict_out_is_dict():
+    # Arrange
     y, p, t, sz = _data()
     if "cook2013" == "cook2013":
         out = cook2013.metrics(y_proba=p, times_seconds=t,
@@ -31,5 +32,25 @@ def test_cook2013_returns_dict():
     elif "cook2013" == "stirling2021":
         out = cook2013.metrics(y_true=y, y_proba=p, times_seconds=t,
                               seizure_times=sz, n_surrogate=30)
+    # Act
+    # Assert
     assert isinstance(out, dict)
+
+
+def test_cook2013_returns_dict_out_paper_cook2013():
+    # Arrange
+    y, p, t, sz = _data()
+    if "cook2013" == "cook2013":
+        out = cook2013.metrics(y_proba=p, times_seconds=t,
+                              seizure_times=sz, n_surrogate=30)
+    elif "cook2013" == "proix2021":
+        out = cook2013.metrics(y_proba=p, times_seconds=t,
+                              seizure_times=sz, n_surrogate=30)
+    elif "cook2013" == "stirling2021":
+        out = cook2013.metrics(y_true=y, y_proba=p, times_seconds=t,
+                              seizure_times=sz, n_surrogate=30)
+    # Act
+    # Assert
     assert out["paper"] == "cook2013"
+
+

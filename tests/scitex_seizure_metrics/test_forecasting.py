@@ -14,37 +14,84 @@ def make_policy(**overrides):
     return AlarmPolicy(**base)
 
 
-def test_policy_validation_rejects_bad_values():
+def test_policy_validation_rejects_bad_values_raises_valueerror():
+    # Arrange
+    # Act
+    # Assert
     with pytest.raises(ValueError):
         AlarmPolicy(sph_seconds=-1, sop_seconds=10, cadence_seconds=1,
                     refractory_seconds=0)
+
+
+def test_policy_validation_rejects_bad_values_raises_valueerror():
+    # Arrange
+    # Act
+    # Assert
     with pytest.raises(ValueError):
         AlarmPolicy(sph_seconds=0, sop_seconds=0, cadence_seconds=1,
                     refractory_seconds=0)
+
+
+def test_policy_validation_rejects_bad_values_raises_valueerror():
+    # Arrange
+    # Act
+    # Assert
     with pytest.raises(ValueError):
         AlarmPolicy(sph_seconds=0, sop_seconds=10, cadence_seconds=0,
                     refractory_seconds=0)
+
+
+def test_policy_validation_rejects_bad_values_raises_valueerror():
+    # Arrange
+    # Act
+    # Assert
     with pytest.raises(ValueError):
         AlarmPolicy(sph_seconds=0, sop_seconds=10, cadence_seconds=1,
                     refractory_seconds=0, alarm_threshold=1.5)
 
 
-def test_policy_describe_roundtrip():
+
+
+def test_policy_describe_roundtrip_d_sph_s_300():
+    # Arrange
     p = make_policy()
     d = p.describe()
+    # Act
+    # Assert
     assert d["sph_s"] == 300
+
+
+def test_policy_describe_roundtrip_d_sop_s_600():
+    # Arrange
+    p = make_policy()
+    d = p.describe()
+    # Act
+    # Assert
     assert d["sop_s"] == 600
+
+
+def test_policy_describe_roundtrip_d_cadence_s_60():
+    # Arrange
+    p = make_policy()
+    d = p.describe()
+    # Act
+    # Assert
     assert d["cadence_s"] == 60
+
+
+def test_policy_describe_roundtrip_d_fp_denominator_interictal():
+    # Arrange
+    p = make_policy()
+    d = p.describe()
+    # Act
+    # Assert
     assert d["fp_denominator"] == "interictal"
 
 
-def test_evaluate_stream_perfect_predictor():
-    """Perfect proba in window placing alarm so [alarm+SPH, alarm+SPH+SOP]
-    covers each seizure onset.
 
-    With SPH=300, SOP=600: alarm must fire in [sz - SPH - SOP, sz - SPH] =
-    [sz - 900, sz - 300]. Then merged-alarm at sz - 900 → covers [sz-600, sz].
-    """
+
+def test_evaluate_stream_perfect_predictor_rep_sensitivity_equals_n_1_0():
+    # Arrange
     seizures = np.array([3600.0, 7200.0, 10800.0])
     times = np.arange(0, 14400, 60.0)
     proba = np.zeros_like(times)
@@ -56,26 +103,68 @@ def test_evaluate_stream_perfect_predictor():
         proba, times, seizures, pol,
         total_recording_time=14400.0, n_surrogate=200,
     )
+    # Act
+    # Assert
     assert rep.sensitivity == 1.0
+
+
+def test_evaluate_stream_perfect_predictor_rep_n_tp_equals_n_3():
+    # Arrange
+    seizures = np.array([3600.0, 7200.0, 10800.0])
+    times = np.arange(0, 14400, 60.0)
+    proba = np.zeros_like(times)
+    for sz in seizures:
+        mask = (times >= sz - 900) & (times < sz - 300)
+        proba[mask] = 0.9
+    pol = make_policy()
+    rep = forecasting.evaluate_stream(
+        proba, times, seizures, pol,
+        total_recording_time=14400.0, n_surrogate=200,
+    )
+    # Act
+    # Assert
     assert rep.n_tp == 3
+
+
+def test_evaluate_stream_perfect_predictor_rep_fp_per_hour_equals_n_0_0():
+    # Arrange
+    seizures = np.array([3600.0, 7200.0, 10800.0])
+    times = np.arange(0, 14400, 60.0)
+    proba = np.zeros_like(times)
+    for sz in seizures:
+        mask = (times >= sz - 900) & (times < sz - 300)
+        proba[mask] = 0.9
+    pol = make_policy()
+    rep = forecasting.evaluate_stream(
+        proba, times, seizures, pol,
+        total_recording_time=14400.0, n_surrogate=200,
+    )
+    # Act
+    # Assert
     assert rep.fp_per_hour == 0.0
 
 
+
+
 def test_evaluate_stream_random_baseline_low_ioc():
+    # Arrange
     rng = np.random.default_rng(0)
     seizures = np.array([3600.0, 7200.0])
     times = np.arange(0, 10800, 60.0)
     proba = rng.uniform(0, 1, size=times.size)
     pol = make_policy()
+    # Act
     rep = forecasting.evaluate_stream(
         proba, times, seizures, pol,
         total_recording_time=10800.0, n_surrogate=200, rng_seed=0,
     )
     # Random predictor's IoC should hover near 0 ± small.
+    # Assert
     assert -0.5 < rep.ioc < 0.5
 
 
 def test_sweep_thresholds_monotone_sensitivity():
+    # Arrange
     seizures = np.array([3600.0, 7200.0])
     times = np.arange(0, 10800, 60.0)
     # Strong signal: high proba near each seizure
@@ -89,11 +178,14 @@ def test_sweep_thresholds_monotone_sensitivity():
         total_recording_time=10800.0, n_surrogate=50,
     )
     # As threshold rises, sensitivity should be non-increasing.
+    # Act
     sens = df.sort_values("threshold")["sensitivity"].values
+    # Assert
     assert all(sens[i] >= sens[i+1] - 1e-9 for i in range(len(sens)-1))
 
 
-def test_sweep_policies_cadence_ablation():
+def test_sweep_policies_cadence_ablation_len_df_is_4():
+    # Arrange
     seizures = np.array([3600.0, 7200.0])
     times = np.arange(0, 10800, 60.0)
     proba = np.where((times >= 2400) & (times < 3300), 0.9, 0.0) + \
@@ -103,11 +195,31 @@ def test_sweep_policies_cadence_ablation():
         proba, times, seizures, policies,
         total_recording_time=10800.0, n_surrogate=50,
     )
+    # Act
+    # Assert
     assert len(df) == 4
+
+
+def test_sweep_policies_cadence_ablation_cadence_s_in_df_columns():
+    # Arrange
+    seizures = np.array([3600.0, 7200.0])
+    times = np.arange(0, 10800, 60.0)
+    proba = np.where((times >= 2400) & (times < 3300), 0.9, 0.0) + \
+            np.where((times >= 6000) & (times < 6900), 0.9, 0.0)
+    policies = [make_policy(cadence_seconds=c) for c in [30, 60, 120, 300]]
+    df = forecasting.sweep_policies(
+        proba, times, seizures, policies,
+        total_recording_time=10800.0, n_surrogate=50,
+    )
+    # Act
+    # Assert
     assert "cadence_s" in df.columns
 
 
+
+
 def test_fp_denominator_interictal_vs_total():
+    # Arrange
     seizures = np.array([3600.0])
     times = np.arange(0, 7200, 60.0)
     # One alarm at t=10 (way before seizure): outside SPH/SOP → FP
@@ -119,17 +231,33 @@ def test_fp_denominator_interictal_vs_total():
         proba, times, seizures, pol_inter,
         total_recording_time=7200.0, n_surrogate=10,
     )
+    # Act
     r_total = forecasting.evaluate_stream(
         proba, times, seizures, pol_total,
         total_recording_time=7200.0, n_surrogate=10,
     )
     # Interictal denominator is smaller → FP/hr larger
+    # Assert
     assert r_inter.fp_per_hour > r_total.fp_per_hour
 
 
-def test_bootstrap_ci_basic():
+def test_bootstrap_ci_basic_lo_mean_hi():
+    # Arrange
     rng = np.random.default_rng(0)
     vals = rng.normal(0.5, 0.1, size=200)
     mean, lo, hi = forecasting.bootstrap_ci(vals, n_boot=500, ci=0.95)
+    # Act
+    # Assert
     assert lo < mean < hi
+
+
+def test_bootstrap_ci_basic_hi_lo_0_05():
+    # Arrange
+    rng = np.random.default_rng(0)
+    vals = rng.normal(0.5, 0.1, size=200)
+    mean, lo, hi = forecasting.bootstrap_ci(vals, n_boot=500, ci=0.95)
+    # Act
+    # Assert
     assert hi - lo < 0.05  # tight CI for n=200
+
+

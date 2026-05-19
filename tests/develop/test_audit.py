@@ -15,13 +15,21 @@ import shutil
 
 import pytest
 
+_SCITEX_DEV_MISSING = shutil.which("scitex-dev") is None
 
-def test_audit_all_clean():
-    if shutil.which("scitex-dev") is None:
-        pytest.skip(
-            "scitex-dev not installed — add `scitex-dev[cli-audit]` "
-            "to [project.optional-dependencies.dev]"
-        )
+
+@pytest.mark.skipif(
+    _SCITEX_DEV_MISSING,
+    reason=(
+        "scitex-dev not installed — add `scitex-dev[cli-audit]` "
+        "to [project.optional-dependencies.dev]"
+    ),
+)
+def test_audit_all_clean_returns_without_raising():
+    # Arrange
     from scitex_dev.testing import audit_all_for_package
 
-    audit_all_for_package("scitex-seizure-metrics")
+    # Act
+    result = audit_all_for_package("scitex-seizure-metrics")
+    # Assert
+    assert result is None or result is not False

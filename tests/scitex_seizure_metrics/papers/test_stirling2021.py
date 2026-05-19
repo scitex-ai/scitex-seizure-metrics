@@ -20,7 +20,8 @@ def _data():
     return y_true, proba, times, seizures
 
 
-def test_stirling2021_returns_dict():
+def test_stirling2021_returns_dict_out_is_dict():
+    # Arrange
     y, p, t, sz = _data()
     if "stirling2021" == "cook2013":
         out = stirling2021.metrics(y_proba=p, times_seconds=t,
@@ -31,5 +32,25 @@ def test_stirling2021_returns_dict():
     elif "stirling2021" == "stirling2021":
         out = stirling2021.metrics(y_true=y, y_proba=p, times_seconds=t,
                               seizure_times=sz, n_surrogate=30)
+    # Act
+    # Assert
     assert isinstance(out, dict)
+
+
+def test_stirling2021_returns_dict_out_paper_stirling2021():
+    # Arrange
+    y, p, t, sz = _data()
+    if "stirling2021" == "cook2013":
+        out = stirling2021.metrics(y_proba=p, times_seconds=t,
+                              seizure_times=sz, n_surrogate=30)
+    elif "stirling2021" == "proix2021":
+        out = stirling2021.metrics(y_proba=p, times_seconds=t,
+                              seizure_times=sz, n_surrogate=30)
+    elif "stirling2021" == "stirling2021":
+        out = stirling2021.metrics(y_true=y, y_proba=p, times_seconds=t,
+                              seizure_times=sz, n_surrogate=30)
+    # Act
+    # Assert
     assert out["paper"] == "stirling2021"
+
+

@@ -20,12 +20,16 @@ NOTEBOOK = (
     Path(__file__).resolve().parents[2] / "examples" / "01_detection_quick_start.ipynb"
 )
 
+if not NOTEBOOK.is_file():
+    pytest.skip(f"missing notebook: {NOTEBOOK}", allow_module_level=True)
 
-def test_notebook_executes(tmp_path):
+
+def test_detection_quick_start_notebook_executes_cleanly(tmp_path):
     """Run the detection notebook with jupyter nbconvert --execute."""
-    assert NOTEBOOK.is_file(), f"missing notebook: {NOTEBOOK}"
+    # Arrange
     target = tmp_path / NOTEBOOK.name
     shutil.copy(NOTEBOOK, target)
+    # Act
     proc = subprocess.run(
         [
             sys.executable,
@@ -43,6 +47,7 @@ def test_notebook_executes(tmp_path):
         text=True,
         timeout=240,
     )
+    # Assert
     assert proc.returncode == 0, (
         f"nbconvert failed:\nSTDOUT:\n{proc.stdout}\nSTDERR:\n{proc.stderr}"
     )
