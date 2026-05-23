@@ -18,6 +18,12 @@ Unified evaluation library for seizure detection and forecasting.
    plots
    api
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Math:
+
+   math/sample_to_alarm
+
 Indices
 -------
 

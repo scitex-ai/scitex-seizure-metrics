@@ -22,7 +22,16 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.mathjax",
     "myst_parser",
+]
+
+# Enable myst markdown features needed by docs/math/sample_to_alarm.md:
+# - dollarmath: $...$ and $$...$$ render as inline / display math
+# - amsmath: \begin{align*}...\end{align*} blocks
+myst_enable_extensions = [
+    "dollarmath",
+    "amsmath",
 ]
 
 templates_path = ["_templates"]
