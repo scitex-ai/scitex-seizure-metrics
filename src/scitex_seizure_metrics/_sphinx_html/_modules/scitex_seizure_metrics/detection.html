@@ -202,6 +202,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../plots.html">plots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">Full API</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Math:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../math/sample_to_alarm.html">Sample-to-Alarm Bridge: Mathematical Derivation</a></li>
+</ul>
 
 </div>
 </div>
@@ -242,12 +246,11 @@
 <span class="sd">threshold-dependent confusion-matrix metrics.</span>
 
 <span class="sd">Use this when:</span>
-<span class="sd">- Your model emits one probability per fixed-length window (clip-level</span>
-<span class="sd">  classification, e.g. 10-min preictal-vs-interictal).</span>
-<span class="sd">- You want the imbalance-aware metrics (AUPRC + balanced accuracy +</span>
-<span class="sd">  MCC) that no NeuroVista paper has reported (gap noted in the</span>
-<span class="sd">  literature review).</span>
+
+<span class="sd">- Your model emits one probability per fixed-length window (clip-level classification, e.g. 10-min preictal-vs-interictal).</span>
+<span class="sd">- You want the imbalance-aware metrics (AUPRC + balanced accuracy + MCC) that no NeuroVista paper has reported (gap noted in the literature review).</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>

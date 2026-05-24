@@ -203,6 +203,10 @@
 <li class="toctree-l1"><a class="reference internal" href="plots.html">plots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Full API</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Math:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="math/sample_to_alarm.html">Sample-to-Alarm Bridge: Mathematical Derivation</a></li>
+</ul>
 
 </div>
 </div>
@@ -246,58 +250,78 @@
 metrics under a declared AlarmPolicy.</p>
 <p>Useful when comparing a published paper that reported only sample-based
 AUC against a paper that reported only alarm-based sensitivity + FP/hr.</p>
-<p>Derivations (informal):</p>
-<p>Let
-- s = per-window sample sensitivity = P(yhat=1 | y=1)
-- α = per-window false-positive rate = 1 - specificity = P(yhat=1 | y=0)
-- π = pre-ictal-window prevalence = P(y=1)
-- K = ⌈SOP / cadence⌉ = number of independent prediction windows whose</p>
-<blockquote>
-<div><p>“above-threshold” event would catch a seizure under the alarm
-semantics.</p>
-</div></blockquote>
+<section id="symbols">
+<h2>Symbols<a class="headerlink" href="#symbols" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>R = refractory_seconds (minimum gap between alarms after merging).</p></li>
-<li><p>T = total observation duration (seconds).</p></li>
+<li><p><span class="math notranslate nohighlight">\(s\)</span> — per-window sample sensitivity, <span class="math notranslate nohighlight">\(\Pr(\hat{y} = 1 \mid y = 1)\)</span>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha\)</span> — per-window false-positive rate,
+<span class="math notranslate nohighlight">\(1 - \text{specificity} = \Pr(\hat{y} = 1 \mid y = 0)\)</span>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\pi\)</span> — pre-ictal-window prevalence, <span class="math notranslate nohighlight">\(\Pr(y = 1)\)</span>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\Delta\)</span> — <code class="docutils literal notranslate"><span class="pre">cadence_seconds</span></code> (seconds between prediction windows).</p></li>
+<li><p><span class="math notranslate nohighlight">\(\text{SOP}\)</span> — Seizure Occurrence Period (seconds).</p></li>
+<li><p><span class="math notranslate nohighlight">\(R\)</span> — <code class="docutils literal notranslate"><span class="pre">refractory_seconds</span></code> (minimum gap between alarms).</p></li>
 </ul>
-<p>ALARM SENSITIVITY (per-seizure detection probability):</p>
-<dl class="simple">
-<dt>Upper bound (independent errors, perfect coverage):</dt><dd><p>alarm_sens_upper = 1 - (1 - s) ** K</p>
-</dd>
-</dl>
-<p>Lower bound (fully clustered errors — if any one of the K windows is
-correctly above threshold, all K are):</p>
-<blockquote>
-<div><p>alarm_sens_lower = s</p>
-</div></blockquote>
-<p>Prevalence-adjusted upper (when prevalence is very low, even ‘perfect’
-sample-sens may not give K independent chances because there may not
-be K positive-labelled windows in the SOP):</p>
-<blockquote>
-<div><p>K_eff = min(K, max(1, int(round(SOP * π / cadence))))
-alarm_sens_upper_with_prevalence = 1 - (1 - s) ** K_eff</p>
-</div></blockquote>
-<p>FP/hr:</p>
-<dl class="simple">
-<dt>Naive (no refractory, independent errors):</dt><dd><p>fp_hr_naive = α * (3600 / cadence) * (1 - π)</p>
-</dd>
-<dt>Refractory cap (no two alarms within R, regardless of α):</dt><dd><p>fp_hr_cap = 3600 / R</p>
-</dd>
-<dt>Upper bound:</dt><dd><p>fp_hr_upper = min(fp_hr_naive, fp_hr_cap)</p>
-</dd>
-</dl>
-<p>Lower bound (under maximal correlation, FP-clustering, alarm count
-collapses; conservative non-trivial lower bound depends on the
-correlation length we cannot infer from sample metrics alone):</p>
-<blockquote>
-<div><dl class="simple">
-<dt>fp_hr_lower = 0.0   (we report 0 by convention; calibrated lower</dt><dd><p>bounds require an autocorr-proxy parameter).</p>
-</dd>
-</dl>
-</div></blockquote>
-<p>References:
-- Andrade et al. 2024 — sample- vs alarm-based perspectives.
-- Mormann et al. 2007 — definition of false-prediction rate.</p>
+</section>
+<section id="effective-k">
+<h2>Effective K<a class="headerlink" href="#effective-k" title="Link to this heading">¶</a></h2>
+<p>The number of independent prediction windows whose “above-threshold”
+event would catch a seizure under the alarm semantics:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[K = \left\lceil \frac{\text{SOP}}{\Delta} \right\rceil\]</div>
+</div>
+<p>Prevalence-adjusted effective K (very-low-prevalence streams may not
+contain <span class="math notranslate nohighlight">\(K\)</span> pre-ictal-labelled windows inside one SOP):</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[K_{\text{eff}} = \min\!\Big(K,\ \max\!\big(1,\ \operatorname{round}(K \cdot \pi)\big)\Big)\]</div>
+</div>
+</section>
+<section id="alarm-sensitivity-per-seizure-detection-probability">
+<h2>Alarm sensitivity (per-seizure detection probability)<a class="headerlink" href="#alarm-sensitivity-per-seizure-detection-probability" title="Link to this heading">¶</a></h2>
+<p>Upper bound (independent errors — optimistic envelope):</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{alarm\_sens}_{\text{upper}} = 1 - (1 - s)^{K_{\text{eff}}}\]</div>
+</div>
+<p>Lower bound (fully-clustered errors — if any one of the
+<span class="math notranslate nohighlight">\(K_{\text{eff}}\)</span> windows is correctly above threshold, all are;
+pessimistic envelope):</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{alarm\_sens}_{\text{lower}} = s\]</div>
+</div>
+</section>
+<section id="fp-hr-alarms-per-hour">
+<h2>FP/hr (alarms per hour)<a class="headerlink" href="#fp-hr-alarms-per-hour" title="Link to this heading">¶</a></h2>
+<p>Naive (no refractory, independent errors):</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{FP/h}_{\text{naive}} = \alpha \cdot \frac{3600}{\Delta} \cdot (1 - \pi)\]</div>
+</div>
+<p>Refractory cap (no two alarms within <span class="math notranslate nohighlight">\(R\)</span> seconds, regardless of
+<span class="math notranslate nohighlight">\(\alpha\)</span>):</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{FP/h}_{\text{cap}} = \frac{3600}{R}\]</div>
+</div>
+<p>Upper bound:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{FP/h}_{\text{upper}} = \min\!\big(\text{FP/h}_{\text{naive}},\ \text{FP/h}_{\text{cap}}\big)\]</div>
+</div>
+<p>Lower bound: <code class="docutils literal notranslate"><span class="pre">0.0</span></code> by convention. Under maximal positive correlation
+the alarm count collapses; a calibrated non-trivial lower bound requires
+an autocorrelation-proxy parameter that sample-only metrics do not
+identify.</p>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>Andrade et al. 2024 — sample- vs alarm-based perspectives.</p></li>
+<li><p>Mormann et al. 2007 — definition of false-prediction rate.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs/math/sample_to_alarm.md</span></code> — paper-ready derivation including
+the inverse direction (alarm → sample) and a worked example.</p></li>
+</ul>
+</section>
 <dl class="py class">
 <dt class="sig sig-object py" id="scitex_seizure_metrics.bridge.SampleToAlarmBounds">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">scitex_seizure_metrics.bridge.</span></span><span class="sig-name descname"><span class="pre">SampleToAlarmBounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alarm_sensitivity_upper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alarm_sensitivity_lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_per_hour_lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_per_hour_upper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">K_effective</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_seizure_metrics/bridge.html#SampleToAlarmBounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_seizure_metrics.bridge.SampleToAlarmBounds" title="Link to this definition">¶</a></dt>
@@ -465,6 +489,10 @@ scales with 1-π).</p></li>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">bridge</a><ul>
+<li><a class="reference internal" href="#symbols">Symbols</a></li>
+<li><a class="reference internal" href="#effective-k">Effective K</a></li>
+<li><a class="reference internal" href="#alarm-sensitivity-per-seizure-detection-probability">Alarm sensitivity (per-seizure detection probability)</a></li>
+<li><a class="reference internal" href="#fp-hr-alarms-per-hour">FP/hr (alarms per hour)</a></li>
 <li><a class="reference internal" href="#scitex_seizure_metrics.bridge.SampleToAlarmBounds"><code class="docutils literal notranslate"><span class="pre">SampleToAlarmBounds</span></code></a><ul>
 <li><a class="reference internal" href="#scitex_seizure_metrics.bridge.SampleToAlarmBounds.K_effective"><code class="docutils literal notranslate"><span class="pre">SampleToAlarmBounds.K_effective</span></code></a></li>
 <li><a class="reference internal" href="#scitex_seizure_metrics.bridge.SampleToAlarmBounds.alarm_sensitivity_lower"><code class="docutils literal notranslate"><span class="pre">SampleToAlarmBounds.alarm_sensitivity_lower</span></code></a></li>
@@ -491,5 +519,7 @@ scales with 1-π).</p></li>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     </body>
 </html>

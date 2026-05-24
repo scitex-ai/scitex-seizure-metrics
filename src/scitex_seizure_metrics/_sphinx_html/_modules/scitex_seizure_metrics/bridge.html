@@ -202,6 +202,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../plots.html">plots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">Full API</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Math:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../math/sample_to_alarm.html">Sample-to-Alarm Bridge: Mathematical Derivation</a></li>
+</ul>
 
 </div>
 </div>
@@ -234,59 +238,91 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for scitex_seizure_metrics.bridge</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Cross-paper bridge — analytic bounds between sample- and alarm-based</span>
+<span></span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Cross-paper bridge — analytic bounds between sample- and alarm-based</span>
 <span class="sd">metrics under a declared AlarmPolicy.</span>
 
 <span class="sd">Useful when comparing a published paper that reported only sample-based</span>
 <span class="sd">AUC against a paper that reported only alarm-based sensitivity + FP/hr.</span>
 
-<span class="sd">Derivations (informal):</span>
+<span class="sd">Symbols</span>
+<span class="sd">-------</span>
 
-<span class="sd">Let</span>
-<span class="sd">- s = per-window sample sensitivity = P(yhat=1 | y=1)</span>
-<span class="sd">- α = per-window false-positive rate = 1 - specificity = P(yhat=1 | y=0)</span>
-<span class="sd">- π = pre-ictal-window prevalence = P(y=1)</span>
-<span class="sd">- K = ⌈SOP / cadence⌉ = number of independent prediction windows whose</span>
-<span class="sd">      &quot;above-threshold&quot; event would catch a seizure under the alarm</span>
-<span class="sd">      semantics.</span>
-<span class="sd">- R = refractory_seconds (minimum gap between alarms after merging).</span>
-<span class="sd">- T = total observation duration (seconds).</span>
+<span class="sd">- :math:`s` — per-window sample sensitivity, :math:`\Pr(\hat{y} = 1 \mid y = 1)`.</span>
+<span class="sd">- :math:`\alpha` — per-window false-positive rate,</span>
+<span class="sd">  :math:`1 - \text{specificity} = \Pr(\hat{y} = 1 \mid y = 0)`.</span>
+<span class="sd">- :math:`\pi` — pre-ictal-window prevalence, :math:`\Pr(y = 1)`.</span>
+<span class="sd">- :math:`\Delta` — ``cadence_seconds`` (seconds between prediction windows).</span>
+<span class="sd">- :math:`\text{SOP}` — Seizure Occurrence Period (seconds).</span>
+<span class="sd">- :math:`R` — ``refractory_seconds`` (minimum gap between alarms).</span>
 
-<span class="sd">ALARM SENSITIVITY (per-seizure detection probability):</span>
+<span class="sd">Effective K</span>
+<span class="sd">-----------</span>
 
-<span class="sd">Upper bound (independent errors, perfect coverage):</span>
-<span class="sd">    alarm_sens_upper = 1 - (1 - s) ** K</span>
+<span class="sd">The number of independent prediction windows whose &quot;above-threshold&quot;</span>
+<span class="sd">event would catch a seizure under the alarm semantics:</span>
 
-<span class="sd">Lower bound (fully clustered errors — if any one of the K windows is</span>
-<span class="sd">correctly above threshold, all K are):</span>
-<span class="sd">    alarm_sens_lower = s</span>
+<span class="sd">.. math::</span>
 
-<span class="sd">Prevalence-adjusted upper (when prevalence is very low, even &#39;perfect&#39;</span>
-<span class="sd">sample-sens may not give K independent chances because there may not</span>
-<span class="sd">be K positive-labelled windows in the SOP):</span>
-<span class="sd">    K_eff = min(K, max(1, int(round(SOP * π / cadence))))</span>
-<span class="sd">    alarm_sens_upper_with_prevalence = 1 - (1 - s) ** K_eff</span>
+<span class="sd">   K = \left\lceil \frac{\text{SOP}}{\Delta} \right\rceil</span>
 
-<span class="sd">FP/hr:</span>
+<span class="sd">Prevalence-adjusted effective K (very-low-prevalence streams may not</span>
+<span class="sd">contain :math:`K` pre-ictal-labelled windows inside one SOP):</span>
+
+<span class="sd">.. math::</span>
+
+<span class="sd">   K_{\text{eff}} = \min\!\Big(K,\ \max\!\big(1,\ \operatorname{round}(K \cdot \pi)\big)\Big)</span>
+
+<span class="sd">Alarm sensitivity (per-seizure detection probability)</span>
+<span class="sd">-----------------------------------------------------</span>
+
+<span class="sd">Upper bound (independent errors — optimistic envelope):</span>
+
+<span class="sd">.. math::</span>
+
+<span class="sd">   \text{alarm\_sens}_{\text{upper}} = 1 - (1 - s)^{K_{\text{eff}}}</span>
+
+<span class="sd">Lower bound (fully-clustered errors — if any one of the</span>
+<span class="sd">:math:`K_{\text{eff}}` windows is correctly above threshold, all are;</span>
+<span class="sd">pessimistic envelope):</span>
+
+<span class="sd">.. math::</span>
+
+<span class="sd">   \text{alarm\_sens}_{\text{lower}} = s</span>
+
+<span class="sd">FP/hr (alarms per hour)</span>
+<span class="sd">-----------------------</span>
 
 <span class="sd">Naive (no refractory, independent errors):</span>
-<span class="sd">    fp_hr_naive = α * (3600 / cadence) * (1 - π)</span>
 
-<span class="sd">Refractory cap (no two alarms within R, regardless of α):</span>
-<span class="sd">    fp_hr_cap = 3600 / R</span>
+<span class="sd">.. math::</span>
+
+<span class="sd">   \text{FP/h}_{\text{naive}} = \alpha \cdot \frac{3600}{\Delta} \cdot (1 - \pi)</span>
+
+<span class="sd">Refractory cap (no two alarms within :math:`R` seconds, regardless of</span>
+<span class="sd">:math:`\alpha`):</span>
+
+<span class="sd">.. math::</span>
+
+<span class="sd">   \text{FP/h}_{\text{cap}} = \frac{3600}{R}</span>
 
 <span class="sd">Upper bound:</span>
-<span class="sd">    fp_hr_upper = min(fp_hr_naive, fp_hr_cap)</span>
 
-<span class="sd">Lower bound (under maximal correlation, FP-clustering, alarm count</span>
-<span class="sd">collapses; conservative non-trivial lower bound depends on the</span>
-<span class="sd">correlation length we cannot infer from sample metrics alone):</span>
-<span class="sd">    fp_hr_lower = 0.0   (we report 0 by convention; calibrated lower</span>
-<span class="sd">                         bounds require an autocorr-proxy parameter).</span>
+<span class="sd">.. math::</span>
 
-<span class="sd">References:</span>
+<span class="sd">   \text{FP/h}_{\text{upper}} = \min\!\big(\text{FP/h}_{\text{naive}},\ \text{FP/h}_{\text{cap}}\big)</span>
+
+<span class="sd">Lower bound: ``0.0`` by convention. Under maximal positive correlation</span>
+<span class="sd">the alarm count collapses; a calibrated non-trivial lower bound requires</span>
+<span class="sd">an autocorrelation-proxy parameter that sample-only metrics do not</span>
+<span class="sd">identify.</span>
+
+<span class="sd">References</span>
+<span class="sd">----------</span>
+
 <span class="sd">- Andrade et al. 2024 — sample- vs alarm-based perspectives.</span>
 <span class="sd">- Mormann et al. 2007 — definition of false-prediction rate.</span>
+<span class="sd">- ``docs/math/sample_to_alarm.md`` — paper-ready derivation including</span>
+<span class="sd">  the inverse direction (alarm → sample) and a worked example.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 

@@ -203,6 +203,10 @@
 <li class="toctree-l1"><a class="reference internal" href="plots.html">plots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Full API</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Math:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="math/sample_to_alarm.html">Sample-to-Alarm Bridge: Mathematical Derivation</a></li>
+</ul>
 
 </div>
 </div>
@@ -247,15 +251,10 @@
 (Andrade 2024). Built on sklearn for the threshold-free metrics
 (AUROC, AUPRC, Brier) and on timescoring.SampleScoring for the
 threshold-dependent confusion-matrix metrics.</p>
-<p>Use this when:
-- Your model emits one probability per fixed-length window (clip-level</p>
-<blockquote>
-<div><p>classification, e.g. 10-min preictal-vs-interictal).</p>
-</div></blockquote>
+<p>Use this when:</p>
 <ul class="simple">
-<li><p>You want the imbalance-aware metrics (AUPRC + balanced accuracy +
-MCC) that no NeuroVista paper has reported (gap noted in the
-literature review).</p></li>
+<li><p>Your model emits one probability per fixed-length window (clip-level classification, e.g. 10-min preictal-vs-interictal).</p></li>
+<li><p>You want the imbalance-aware metrics (AUPRC + balanced accuracy + MCC) that no NeuroVista paper has reported (gap noted in the literature review).</p></li>
 </ul>
 <dl class="py function">
 <dt class="sig sig-object py" id="scitex_seizure_metrics.detection.evaluate">

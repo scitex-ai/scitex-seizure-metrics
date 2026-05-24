@@ -202,6 +202,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../plots.html">plots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">Full API</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Math:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../math/sample_to_alarm.html">Sample-to-Alarm Bridge: Mathematical Derivation</a></li>
+</ul>
 
 </div>
 </div>
@@ -237,41 +241,45 @@
 <span></span><span class="sd">&quot;&quot;&quot;Forecasting regime — alarm-based metrics with explicit AlarmPolicy.</span>
 
 <span class="sd">Two entry points:</span>
-<span class="sd">- evaluate(alarms, seizures, policy, ...) — accepts pre-computed alarm</span>
-<span class="sd">  times; useful when alarms come from a different pipeline.</span>
-<span class="sd">- evaluate_stream(proba, times, seizures, policy, ...) — accepts a</span>
-<span class="sd">  continuous prediction stream (proba per timepoint); applies the</span>
-<span class="sd">  policy&#39;s threshold + refractory + merging to produce alarms, then</span>
-<span class="sd">  evaluates. This is the gold-standard entry point — every reported</span>
-<span class="sd">  number is reproducible from (proba, times, policy).</span>
+
+<span class="sd">- evaluate(alarms, seizures, policy, ...) — accepts pre-computed alarm times; useful when alarms come from a different pipeline.</span>
+<span class="sd">- evaluate_stream(proba, times, seizures, policy, ...) — accepts a continuous prediction stream (proba per timepoint); applies the policy&#39;s threshold + refractory + merging to produce alarms, then evaluates. This is the gold-standard entry point — every reported number is reproducible from (proba, times, policy).</span>
 
 <span class="sd">Also provides:</span>
+
 <span class="sd">- sweep_thresholds — sensitivity-vs-FP/hr ROC across a threshold sweep.</span>
-<span class="sd">- sweep_policies   — same metrics across multiple AlarmPolicy values</span>
-<span class="sd">                     (e.g. cadence ablation).</span>
+<span class="sd">- sweep_policies — same metrics across multiple AlarmPolicy values (e.g. cadence ablation).</span>
 
 <span class="sd">All metrics use the AlarmPolicy.fp_denominator convention. The Mormann-</span>
 <span class="sd">tradition default (&quot;interictal&quot;) excludes [seizure - sop - sph,</span>
 <span class="sd">seizure + sop] windows from the FP/hr denominator.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">surrogates</span> <span class="k">as</span> <span class="n">_surrogates</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_alarm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">surrogates</span> <span class="k">as</span> <span class="n">_surrogates</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">AlarmPolicy</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.report</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsReport</span>
 
 
 <div class="viewcode-block" id="evaluate">
 <a class="viewcode-back" href="../../forecasting.html#scitex_seizure_metrics.forecasting.evaluate">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="n">alarm_times</span><span class="p">,</span> <span class="n">seizure_times</span><span class="p">,</span> <span class="n">policy</span><span class="p">:</span> <span class="n">AlarmPolicy</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
-             <span class="n">total_recording_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">n_surrogate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
-             <span class="n">surrogate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;poisson&quot;</span><span class="p">,</span> <span class="n">rng_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-             <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsReport</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span>
+    <span class="n">alarm_times</span><span class="p">,</span>
+    <span class="n">seizure_times</span><span class="p">,</span>
+    <span class="n">policy</span><span class="p">:</span> <span class="n">AlarmPolicy</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">total_recording_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">n_surrogate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+    <span class="n">surrogate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;poisson&quot;</span><span class="p">,</span>
+    <span class="n">rng_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Alarm-based forecasting evaluation under an explicit AlarmPolicy.</span>
 
 <span class="sd">    Args:</span>
@@ -295,17 +303,22 @@
     <span class="k">if</span> <span class="n">total_recording_time</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;total_recording_time must be &gt; 0&quot;</span><span class="p">)</span>
 
-    <span class="n">sc</span><span class="p">,</span> <span class="n">au</span> <span class="o">=</span> <span class="n">_alarm</span><span class="o">.</span><span class="n">alarm_match</span><span class="p">(</span><span class="n">alarms</span><span class="p">,</span> <span class="n">seizures</span><span class="p">,</span>
-                                <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span><span class="p">)</span>
+    <span class="n">sc</span><span class="p">,</span> <span class="n">au</span> <span class="o">=</span> <span class="n">_alarm</span><span class="o">.</span><span class="n">alarm_match</span><span class="p">(</span>
+        <span class="n">alarms</span><span class="p">,</span> <span class="n">seizures</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span>
+    <span class="p">)</span>
     <span class="n">tp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sc</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
     <span class="n">fp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="o">~</span><span class="n">au</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
 
     <span class="c1"># Time-in-warning: union of [a + SPH, a + SPH + SOP] across alarms.</span>
     <span class="k">if</span> <span class="n">alarms</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">tiw_seconds</span> <span class="o">=</span> <span class="n">_alarm</span><span class="o">.</span><span class="n">union_length</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span>
-            <span class="n">alarms</span> <span class="o">+</span> <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span>
-            <span class="n">alarms</span> <span class="o">+</span> <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span> <span class="o">+</span> <span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span><span class="p">,</span>
-        <span class="p">]))</span>
+        <span class="n">tiw_seconds</span> <span class="o">=</span> <span class="n">_alarm</span><span class="o">.</span><span class="n">union_length</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">alarms</span> <span class="o">+</span> <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span>
+                    <span class="n">alarms</span> <span class="o">+</span> <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span> <span class="o">+</span> <span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">tiw_seconds</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">tiw_frac</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tiw_seconds</span> <span class="o">/</span> <span class="n">total_recording_time</span><span class="p">)</span>
@@ -313,8 +326,8 @@
     <span class="c1"># FP/hr denominator</span>
     <span class="k">if</span> <span class="n">policy</span><span class="o">.</span><span class="n">fp_denominator</span> <span class="o">==</span> <span class="s2">&quot;interictal&quot;</span><span class="p">:</span>
         <span class="n">denom_seconds</span> <span class="o">=</span> <span class="n">_alarm</span><span class="o">.</span><span class="n">interictal_seconds</span><span class="p">(</span>
-            <span class="n">total_recording_time</span><span class="p">,</span> <span class="n">seizures</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span><span class="p">,</span>
-            <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">)</span>
+            <span class="n">total_recording_time</span><span class="p">,</span> <span class="n">seizures</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span>
+        <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">denom_seconds</span> <span class="o">=</span> <span class="n">total_recording_time</span>
     <span class="n">fp_per_hour</span> <span class="o">=</span> <span class="n">fp</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mf">1e-9</span><span class="p">,</span> <span class="n">denom_seconds</span> <span class="o">/</span> <span class="mf">3600.0</span><span class="p">)</span>
@@ -326,27 +339,36 @@
     <span class="n">surro_fn</span> <span class="o">=</span> <span class="n">_surrogates</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">surrogate</span><span class="p">)</span>
     <span class="n">surrogate_sens</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_surrogate</span><span class="p">):</span>
-        <span class="n">rand_alarms</span> <span class="o">=</span> <span class="n">surro_fn</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">alarms</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
-                               <span class="nb">max</span><span class="p">(</span><span class="n">total_recording_time</span> <span class="o">-</span> <span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span>
-                                   <span class="o">-</span> <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
-                               <span class="n">rng</span><span class="p">)</span>
-        <span class="n">sc_s</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_alarm</span><span class="o">.</span><span class="n">alarm_match</span><span class="p">(</span><span class="n">rand_alarms</span><span class="p">,</span> <span class="n">seizures</span><span class="p">,</span>
-                                     <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span><span class="p">)</span>
+        <span class="n">rand_alarms</span> <span class="o">=</span> <span class="n">surro_fn</span><span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">alarms</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+            <span class="nb">max</span><span class="p">(</span><span class="n">total_recording_time</span> <span class="o">-</span> <span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span> <span class="o">-</span> <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+            <span class="n">rng</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">sc_s</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_alarm</span><span class="o">.</span><span class="n">alarm_match</span><span class="p">(</span>
+            <span class="n">rand_alarms</span><span class="p">,</span> <span class="n">seizures</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span>
+        <span class="p">)</span>
         <span class="n">surrogate_sens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sc_s</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">seizures</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
     <span class="n">surro_mean</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">surrogate_sens</span><span class="p">))</span> <span class="k">if</span> <span class="n">surrogate_sens</span> <span class="k">else</span> <span class="mf">0.0</span>
 
     <span class="n">rep</span> <span class="o">=</span> <span class="n">MetricsReport</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">regime</span><span class="o">=</span><span class="s2">&quot;forecasting&quot;</span><span class="p">,</span>
-        <span class="n">sensitivity</span><span class="o">=</span><span class="n">sens</span><span class="p">,</span> <span class="n">n_ref_events</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">seizures</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
-        <span class="n">n_tp</span><span class="o">=</span><span class="n">tp</span><span class="p">,</span> <span class="n">n_fp</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">regime</span><span class="o">=</span><span class="s2">&quot;forecasting&quot;</span><span class="p">,</span>
+        <span class="n">sensitivity</span><span class="o">=</span><span class="n">sens</span><span class="p">,</span>
+        <span class="n">n_ref_events</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">seizures</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+        <span class="n">n_tp</span><span class="o">=</span><span class="n">tp</span><span class="p">,</span>
+        <span class="n">n_fp</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
         <span class="n">fp_per_hour</span><span class="o">=</span><span class="n">fp_per_hour</span><span class="p">,</span>
         <span class="n">fp_per_day</span><span class="o">=</span><span class="n">fp_per_hour</span> <span class="o">*</span> <span class="mf">24.0</span><span class="p">,</span>
-        <span class="n">sph_seconds</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span> <span class="n">sop_seconds</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span><span class="p">,</span>
+        <span class="n">sph_seconds</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span>
+        <span class="n">sop_seconds</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span><span class="p">,</span>
         <span class="n">time_in_warning_frac</span><span class="o">=</span><span class="n">tiw_frac</span><span class="p">,</span>
-        <span class="n">ioc</span><span class="o">=</span><span class="n">sens</span> <span class="o">-</span> <span class="n">surro_mean</span><span class="p">,</span> <span class="n">surrogate_sensitivity</span><span class="o">=</span><span class="n">surro_mean</span><span class="p">,</span>
-        <span class="n">extras</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;policy&quot;</span><span class="p">:</span> <span class="n">policy</span><span class="o">.</span><span class="n">describe</span><span class="p">(),</span>
-                <span class="s2">&quot;interictal_seconds&quot;</span><span class="p">:</span> <span class="n">denom_seconds</span><span class="p">,</span>
-                <span class="s2">&quot;n_alarms&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">alarms</span><span class="o">.</span><span class="n">size</span><span class="p">)},</span>
+        <span class="n">ioc</span><span class="o">=</span><span class="n">sens</span> <span class="o">-</span> <span class="n">surro_mean</span><span class="p">,</span>
+        <span class="n">surrogate_sensitivity</span><span class="o">=</span><span class="n">surro_mean</span><span class="p">,</span>
+        <span class="n">extras</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;policy&quot;</span><span class="p">:</span> <span class="n">policy</span><span class="o">.</span><span class="n">describe</span><span class="p">(),</span>
+            <span class="s2">&quot;interictal_seconds&quot;</span><span class="p">:</span> <span class="n">denom_seconds</span><span class="p">,</span>
+            <span class="s2">&quot;n_alarms&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">alarms</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+        <span class="p">},</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">rep</span></div>
 
@@ -354,11 +376,18 @@
 
 <div class="viewcode-block" id="evaluate_stream">
 <a class="viewcode-back" href="../../forecasting.html#scitex_seizure_metrics.forecasting.evaluate_stream">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">evaluate_stream</span><span class="p">(</span><span class="n">proba</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">seizure_times</span><span class="p">,</span> <span class="n">policy</span><span class="p">:</span> <span class="n">AlarmPolicy</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
-                    <span class="n">total_recording_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="n">n_surrogate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
-                    <span class="n">surrogate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;poisson&quot;</span><span class="p">,</span>
-                    <span class="n">rng_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsReport</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">evaluate_stream</span><span class="p">(</span>
+    <span class="n">proba</span><span class="p">,</span>
+    <span class="n">times</span><span class="p">,</span>
+    <span class="n">seizure_times</span><span class="p">,</span>
+    <span class="n">policy</span><span class="p">:</span> <span class="n">AlarmPolicy</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">total_recording_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">n_surrogate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+    <span class="n">surrogate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;poisson&quot;</span><span class="p">,</span>
+    <span class="n">rng_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Continuous-stream evaluation entry point — gold standard.</span>
 
 <span class="sd">    Threshold + dedupe (per AlarmPolicy) the proba stream, then call</span>
@@ -370,26 +399,40 @@
     <span class="k">if</span> <span class="n">total_recording_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">total_recording_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">times</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">times</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="k">if</span> <span class="n">times</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mf">0.0</span>
     <span class="n">alarms</span> <span class="o">=</span> <span class="n">_alarm</span><span class="o">.</span><span class="n">proba_stream_to_alarms</span><span class="p">(</span>
-        <span class="n">proba</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span>
+        <span class="n">proba</span><span class="p">,</span>
+        <span class="n">times</span><span class="p">,</span>
         <span class="n">threshold</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">alarm_threshold</span><span class="p">,</span>
         <span class="n">refractory_seconds</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">refractory_seconds</span><span class="p">,</span>
         <span class="n">merge_consecutive</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">merge_consecutive</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">evaluate</span><span class="p">(</span><span class="n">alarms</span><span class="p">,</span> <span class="n">seizure_times</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span>
-                    <span class="n">total_recording_time</span><span class="o">=</span><span class="n">total_recording_time</span><span class="p">,</span>
-                    <span class="n">n_surrogate</span><span class="o">=</span><span class="n">n_surrogate</span><span class="p">,</span> <span class="n">surrogate</span><span class="o">=</span><span class="n">surrogate</span><span class="p">,</span>
-                    <span class="n">rng_seed</span><span class="o">=</span><span class="n">rng_seed</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">evaluate</span><span class="p">(</span>
+        <span class="n">alarms</span><span class="p">,</span>
+        <span class="n">seizure_times</span><span class="p">,</span>
+        <span class="n">policy</span><span class="p">,</span>
+        <span class="n">total_recording_time</span><span class="o">=</span><span class="n">total_recording_time</span><span class="p">,</span>
+        <span class="n">n_surrogate</span><span class="o">=</span><span class="n">n_surrogate</span><span class="p">,</span>
+        <span class="n">surrogate</span><span class="o">=</span><span class="n">surrogate</span><span class="p">,</span>
+        <span class="n">rng_seed</span><span class="o">=</span><span class="n">rng_seed</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="sweep_thresholds">
 <a class="viewcode-back" href="../../forecasting.html#scitex_seizure_metrics.forecasting.sweep_thresholds">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">sweep_thresholds</span><span class="p">(</span><span class="n">proba</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">seizure_times</span><span class="p">,</span> <span class="n">policy</span><span class="p">:</span> <span class="n">AlarmPolicy</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
-                     <span class="n">thresholds</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                     <span class="n">total_recording_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                     <span class="n">n_surrogate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
-                     <span class="n">surrogate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;poisson&quot;</span><span class="p">,</span> <span class="n">rng_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-                     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sweep_thresholds</span><span class="p">(</span>
+    <span class="n">proba</span><span class="p">,</span>
+    <span class="n">times</span><span class="p">,</span>
+    <span class="n">seizure_times</span><span class="p">,</span>
+    <span class="n">policy</span><span class="p">:</span> <span class="n">AlarmPolicy</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">thresholds</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">total_recording_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">n_surrogate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+    <span class="n">surrogate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;poisson&quot;</span><span class="p">,</span>
+    <span class="n">rng_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate the sensitivity-vs-FP/hr operating curve.</span>
 
 <span class="sd">    Returns a pandas DataFrame with one row per threshold; columns</span>
@@ -402,18 +445,25 @@
     <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thresholds</span><span class="p">:</span>
         <span class="n">pol</span> <span class="o">=</span> <span class="n">AlarmPolicy</span><span class="p">(</span>
-            <span class="n">sph_seconds</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span> <span class="n">sop_seconds</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span><span class="p">,</span>
+            <span class="n">sph_seconds</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">sph_seconds</span><span class="p">,</span>
+            <span class="n">sop_seconds</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">sop_seconds</span><span class="p">,</span>
             <span class="n">cadence_seconds</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">cadence_seconds</span><span class="p">,</span>
             <span class="n">refractory_seconds</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">refractory_seconds</span><span class="p">,</span>
             <span class="n">alarm_threshold</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">),</span>
             <span class="n">merge_consecutive</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">merge_consecutive</span><span class="p">,</span>
             <span class="n">fp_denominator</span><span class="o">=</span><span class="n">policy</span><span class="o">.</span><span class="n">fp_denominator</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">rep</span> <span class="o">=</span> <span class="n">evaluate_stream</span><span class="p">(</span><span class="n">proba</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">seizure_times</span><span class="p">,</span> <span class="n">pol</span><span class="p">,</span>
-                              <span class="n">total_recording_time</span><span class="o">=</span><span class="n">total_recording_time</span><span class="p">,</span>
-                              <span class="n">n_surrogate</span><span class="o">=</span><span class="n">n_surrogate</span><span class="p">,</span> <span class="n">surrogate</span><span class="o">=</span><span class="n">surrogate</span><span class="p">,</span>
-                              <span class="n">rng_seed</span><span class="o">=</span><span class="n">rng_seed</span><span class="p">,</span>
-                              <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">@thresh=</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">rep</span> <span class="o">=</span> <span class="n">evaluate_stream</span><span class="p">(</span>
+            <span class="n">proba</span><span class="p">,</span>
+            <span class="n">times</span><span class="p">,</span>
+            <span class="n">seizure_times</span><span class="p">,</span>
+            <span class="n">pol</span><span class="p">,</span>
+            <span class="n">total_recording_time</span><span class="o">=</span><span class="n">total_recording_time</span><span class="p">,</span>
+            <span class="n">n_surrogate</span><span class="o">=</span><span class="n">n_surrogate</span><span class="p">,</span>
+            <span class="n">surrogate</span><span class="o">=</span><span class="n">surrogate</span><span class="p">,</span>
+            <span class="n">rng_seed</span><span class="o">=</span><span class="n">rng_seed</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">@thresh=</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">rep</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
         <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;threshold&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)})</span>
         <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
@@ -423,11 +473,18 @@
 
 <div class="viewcode-block" id="sweep_policies">
 <a class="viewcode-back" href="../../forecasting.html#scitex_seizure_metrics.forecasting.sweep_policies">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">sweep_policies</span><span class="p">(</span><span class="n">proba</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">seizure_times</span><span class="p">,</span>
-                   <span class="n">policies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AlarmPolicy</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span>
-                   <span class="n">total_recording_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                   <span class="n">n_surrogate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span> <span class="n">surrogate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;poisson&quot;</span><span class="p">,</span>
-                   <span class="n">rng_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sweep_policies</span><span class="p">(</span>
+    <span class="n">proba</span><span class="p">,</span>
+    <span class="n">times</span><span class="p">,</span>
+    <span class="n">seizure_times</span><span class="p">,</span>
+    <span class="n">policies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AlarmPolicy</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">total_recording_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">n_surrogate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+    <span class="n">surrogate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;poisson&quot;</span><span class="p">,</span>
+    <span class="n">rng_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Same evaluation across a list of AlarmPolicy values (e.g. cadence</span>
 <span class="sd">    or refractory ablation). Returns DataFrame with one row per policy</span>
 <span class="sd">    plus the policy.describe() columns.&quot;&quot;&quot;</span>
@@ -435,10 +492,17 @@
 
     <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">policies</span><span class="p">):</span>
-        <span class="n">rep</span> <span class="o">=</span> <span class="n">evaluate_stream</span><span class="p">(</span><span class="n">proba</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">seizure_times</span><span class="p">,</span> <span class="n">pol</span><span class="p">,</span>
-                              <span class="n">total_recording_time</span><span class="o">=</span><span class="n">total_recording_time</span><span class="p">,</span>
-                              <span class="n">n_surrogate</span><span class="o">=</span><span class="n">n_surrogate</span><span class="p">,</span> <span class="n">surrogate</span><span class="o">=</span><span class="n">surrogate</span><span class="p">,</span>
-                              <span class="n">rng_seed</span><span class="o">=</span><span class="n">rng_seed</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_pol</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">rep</span> <span class="o">=</span> <span class="n">evaluate_stream</span><span class="p">(</span>
+            <span class="n">proba</span><span class="p">,</span>
+            <span class="n">times</span><span class="p">,</span>
+            <span class="n">seizure_times</span><span class="p">,</span>
+            <span class="n">pol</span><span class="p">,</span>
+            <span class="n">total_recording_time</span><span class="o">=</span><span class="n">total_recording_time</span><span class="p">,</span>
+            <span class="n">n_surrogate</span><span class="o">=</span><span class="n">n_surrogate</span><span class="p">,</span>
+            <span class="n">surrogate</span><span class="o">=</span><span class="n">surrogate</span><span class="p">,</span>
+            <span class="n">rng_seed</span><span class="o">=</span><span class="n">rng_seed</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_pol</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">rep</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
         <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">pol</span><span class="o">.</span><span class="n">describe</span><span class="p">())</span>
         <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
@@ -448,8 +512,7 @@
 
 <div class="viewcode-block" id="bootstrap_ci">
 <a class="viewcode-back" href="../../forecasting.html#scitex_seizure_metrics.forecasting.bootstrap_ci">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_ci</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">n_boot</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">ci</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.95</span><span class="p">,</span>
-                 <span class="n">rng_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_ci</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">n_boot</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">ci</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.95</span><span class="p">,</span> <span class="n">rng_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Percentile bootstrap CI of the mean for a 1-D array.&quot;&quot;&quot;</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">rng_seed</span><span class="p">)</span>
     <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>

@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="prev" title="plots" href="plots.html">
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Sample-to-Alarm Bridge: Mathematical Derivation" href="math/sample_to_alarm.html"><link rel="prev" title="plots" href="plots.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>Full API - scitex-seizure-metrics 0.1.2</title>
@@ -203,6 +203,10 @@
 <li class="toctree-l1"><a class="reference internal" href="plots.html">plots</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Full API</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Math:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="math/sample_to_alarm.html">Sample-to-Alarm Bridge: Mathematical Derivation</a></li>
+</ul>
 
 </div>
 </div>
@@ -243,26 +247,21 @@
           <section id="module-scitex_seizure_metrics">
 <span id="full-api"></span><h1>Full API<a class="headerlink" href="#module-scitex_seizure_metrics" title="Link to this heading">¶</a></h1>
 <p>scitex_seizure_metrics — unified evaluation for seizure detection / forecasting.</p>
-<p>Public API:
-- detection.evaluate(y_true, y_proba, threshold, fs, name)
-- forecasting.evaluate(alarms, seizures, policy, total_recording_time, …)
-- forecasting.evaluate_stream(proba, times, seizures, policy, …)
-- forecasting.sweep_thresholds(proba, times, seizures, policy, …)
-- forecasting.sweep_policies(proba, times, seizures, policies, …)
-- forecasting.bootstrap_ci(values, n_boot, ci, rng_seed)
-- bridge.sample_to_alarm(…) / bridge.alarm_to_sample(…)
-- surrogates.{poisson, periodic, persistence} (registered)
-- plots.{sensitivity_vs_fp_per_hour, sample_vs_alarm_scatter,</p>
-<blockquote>
-<div><p>cadence_ablation, ioc_vs_surrogate, metric_correlation_heatmap}</p>
-</div></blockquote>
-<p>Data classes:
-- AlarmPolicy(sph_seconds, sop_seconds, cadence_seconds,</p>
-<blockquote>
-<div><p>refractory_seconds, alarm_threshold, merge_consecutive,
-fp_denominator)</p>
-</div></blockquote>
+<p>Public API:</p>
 <ul class="simple">
+<li><p>detection.evaluate(y_true, y_proba, threshold, fs, name)</p></li>
+<li><p>forecasting.evaluate(alarms, seizures, policy, total_recording_time, …)</p></li>
+<li><p>forecasting.evaluate_stream(proba, times, seizures, policy, …)</p></li>
+<li><p>forecasting.sweep_thresholds(proba, times, seizures, policy, …)</p></li>
+<li><p>forecasting.sweep_policies(proba, times, seizures, policies, …)</p></li>
+<li><p>forecasting.bootstrap_ci(values, n_boot, ci, rng_seed)</p></li>
+<li><p>bridge.sample_to_alarm(…) / bridge.alarm_to_sample(…)</p></li>
+<li><p>surrogates.{poisson, periodic, persistence} (registered)</p></li>
+<li><p>plots.{sensitivity_vs_fp_per_hour, sample_vs_alarm_scatter, cadence_ablation, ioc_vs_surrogate, metric_correlation_heatmap}</p></li>
+</ul>
+<p>Data classes:</p>
+<ul class="simple">
+<li><p>AlarmPolicy(sph_seconds, sop_seconds, cadence_seconds, refractory_seconds, alarm_threshold, merge_consecutive, fp_denominator)</p></li>
 <li><p>MetricsReport (frozen single-row report; .to_frame(), .to_json())</p></li>
 </ul>
 <dl class="py class">
@@ -523,7 +522,15 @@ patients/folds via <cite>pd.concat([r.to_frame() for r in reports])</cite>.</p>
       <footer>
         
         <div class="related-pages">
-          
+          <a class="next-page" href="math/sample_to_alarm.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Sample-to-Alarm Bridge: Mathematical Derivation</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
           <a class="prev-page" href="plots.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">

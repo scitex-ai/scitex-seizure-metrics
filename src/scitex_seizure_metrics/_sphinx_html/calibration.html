@@ -203,6 +203,10 @@
 <li class="toctree-l1"><a class="reference internal" href="plots.html">plots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Full API</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Math:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="math/sample_to_alarm.html">Sample-to-Alarm Bridge: Mathematical Derivation</a></li>
+</ul>
 
 </div>
 </div>
@@ -248,22 +252,14 @@ decomposition.</p>
 <dt>Brier(p, y) = mean((p - y)^2)</dt><dd><p>= reliability − resolution + uncertainty       (Murphy 1973)</p>
 </dd>
 </dl>
-<p>where, for K equal-frequency bins:
-- reliability = sum_k (n_k/N) * (mean_p_k - mean_y_k)^2</p>
-<blockquote>
-<div><p>→ 0 when predicted probabilities match observed freqs</p>
-</div></blockquote>
+<p>where, for K equal-frequency bins:</p>
 <ul class="simple">
-<li><dl class="simple">
-<dt>resolution  = sum_k (n_k/N) * (mean_y_k - mean_y)^2</dt><dd><p>→ high when bins differ in their observed positive rate</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>uncertainty = mean_y * (1 - mean_y)</dt><dd><p>→ property of the data alone (max 0.25 at p=0.5)</p>
-</dd>
-</dl>
-</li>
+<li><p>reliability = sum_k (n_k/N) * (mean_p_k - mean_y_k)^2
+(→ 0 when predicted probabilities match observed freqs)</p></li>
+<li><p>resolution  = sum_k (n_k/N) * (mean_y_k - mean_y)^2
+(→ high when bins differ in their observed positive rate)</p></li>
+<li><p>uncertainty = mean_y * (1 - mean_y)
+(→ property of the data alone, max 0.25 at p=0.5)</p></li>
 </ul>
 <p>Smaller Brier is better; the decomposition tells you whether bad scores
 come from miscalibration (reliability) or low discrimination (low

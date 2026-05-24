@@ -203,6 +203,10 @@
 <li class="toctree-l1"><a class="reference internal" href="plots.html">plots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Full API</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Math:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="math/sample_to_alarm.html">Sample-to-Alarm Bridge: Mathematical Derivation</a></li>
+</ul>
 
 </div>
 </div>
@@ -243,24 +247,16 @@
           <section id="module-scitex_seizure_metrics.forecasting">
 <span id="forecasting"></span><h1>forecasting<a class="headerlink" href="#module-scitex_seizure_metrics.forecasting" title="Link to this heading">¶</a></h1>
 <p>Forecasting regime — alarm-based metrics with explicit AlarmPolicy.</p>
-<p>Two entry points:
-- evaluate(alarms, seizures, policy, …) — accepts pre-computed alarm</p>
-<blockquote>
-<div><p>times; useful when alarms come from a different pipeline.</p>
-</div></blockquote>
+<p>Two entry points:</p>
 <ul class="simple">
-<li><p>evaluate_stream(proba, times, seizures, policy, …) — accepts a
-continuous prediction stream (proba per timepoint); applies the
-policy’s threshold + refractory + merging to produce alarms, then
-evaluates. This is the gold-standard entry point — every reported
-number is reproducible from (proba, times, policy).</p></li>
+<li><p>evaluate(alarms, seizures, policy, …) — accepts pre-computed alarm times; useful when alarms come from a different pipeline.</p></li>
+<li><p>evaluate_stream(proba, times, seizures, policy, …) — accepts a continuous prediction stream (proba per timepoint); applies the policy’s threshold + refractory + merging to produce alarms, then evaluates. This is the gold-standard entry point — every reported number is reproducible from (proba, times, policy).</p></li>
 </ul>
-<p>Also provides:
-- sweep_thresholds — sensitivity-vs-FP/hr ROC across a threshold sweep.
-- sweep_policies   — same metrics across multiple AlarmPolicy values</p>
-<blockquote>
-<div><p>(e.g. cadence ablation).</p>
-</div></blockquote>
+<p>Also provides:</p>
+<ul class="simple">
+<li><p>sweep_thresholds — sensitivity-vs-FP/hr ROC across a threshold sweep.</p></li>
+<li><p>sweep_policies — same metrics across multiple AlarmPolicy values (e.g. cadence ablation).</p></li>
+</ul>
 <p>All metrics use the AlarmPolicy.fp_denominator convention. The Mormann-
 tradition default (“interictal”) excludes [seizure - sop - sph,
 seizure + sop] windows from the FP/hr denominator.</p>

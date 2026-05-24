@@ -202,6 +202,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../plots.html">plots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">Full API</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Math:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../math/sample_to_alarm.html">Sample-to-Alarm Bridge: Mathematical Derivation</a></li>
+</ul>
 
 </div>
 </div>
@@ -241,17 +245,19 @@
 <span class="sd">            = reliability − resolution + uncertainty       (Murphy 1973)</span>
 
 <span class="sd">where, for K equal-frequency bins:</span>
+
 <span class="sd">- reliability = sum_k (n_k/N) * (mean_p_k - mean_y_k)^2</span>
-<span class="sd">                  → 0 when predicted probabilities match observed freqs</span>
+<span class="sd">  (→ 0 when predicted probabilities match observed freqs)</span>
 <span class="sd">- resolution  = sum_k (n_k/N) * (mean_y_k - mean_y)^2</span>
-<span class="sd">                  → high when bins differ in their observed positive rate</span>
+<span class="sd">  (→ high when bins differ in their observed positive rate)</span>
 <span class="sd">- uncertainty = mean_y * (1 - mean_y)</span>
-<span class="sd">                  → property of the data alone (max 0.25 at p=0.5)</span>
+<span class="sd">  (→ property of the data alone, max 0.25 at p=0.5)</span>
 
 <span class="sd">Smaller Brier is better; the decomposition tells you whether bad scores</span>
 <span class="sd">come from miscalibration (reliability) or low discrimination (low</span>
 <span class="sd">resolution).</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
@@ -264,21 +270,23 @@
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">CalibrationReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Container for calibration metrics + per-bin curve points.&quot;&quot;&quot;</span>
+
     <span class="n">brier</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">reliability</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">uncertainty</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">expected_calibration_error</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">bin_centers</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>            <span class="c1"># mean predicted proba per bin</span>
-    <span class="n">bin_observed</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>           <span class="c1"># observed positive rate per bin</span>
-    <span class="n">bin_counts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>             <span class="c1"># count per bin</span></div>
+    <span class="n">bin_centers</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>  <span class="c1"># mean predicted proba per bin</span>
+    <span class="n">bin_observed</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>  <span class="c1"># observed positive rate per bin</span>
+    <span class="n">bin_counts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>  <span class="c1"># count per bin</span></div>
 
 
 
 <div class="viewcode-block" id="calibration_report">
 <a class="viewcode-back" href="../../calibration.html#scitex_seizure_metrics.calibration.calibration_report">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">calibration_report</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_proba</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n_bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
-                       <span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;uniform&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CalibrationReport</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calibration_report</span><span class="p">(</span>
+    <span class="n">y_true</span><span class="p">,</span> <span class="n">y_proba</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n_bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;uniform&quot;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CalibrationReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Brier decomposition + reliability table.</span>
 
 <span class="sd">    Args:</span>
@@ -302,15 +310,12 @@
     <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;uniform&quot;</span><span class="p">:</span>
         <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">n_bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;quantile&quot;</span><span class="p">:</span>
-        <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">y_proba</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">n_bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="p">)</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">y_proba</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">n_bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
         <span class="k">if</span> <span class="n">edges</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown strategy </span><span class="si">{</span><span class="n">strategy</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">bin_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">y_proba</span><span class="p">,</span> <span class="n">edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">right</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-                      <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">bin_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">y_proba</span><span class="p">,</span> <span class="n">edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">right</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
 
     <span class="n">bin_p</span><span class="p">,</span> <span class="n">bin_o</span><span class="p">,</span> <span class="n">bin_c</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
