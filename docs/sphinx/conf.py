@@ -1,4 +1,5 @@
 """Sphinx configuration for scitex-seizure-metrics."""
+
 from __future__ import annotations
 
 import os
@@ -37,6 +38,20 @@ myst_enable_extensions = [
 templates_path = ["_templates"]
 exclude_patterns = []
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
+
+# Robust docs-CI defense (ecosystem template): suppress only the
+# docutils reST-parser rendering noise that free-form module/function
+# docstrings routinely produce under autodoc — e.g. a wrapped bullet
+# whose continuation line docutils reads as a nested block quote
+# ("Unexpected indentation" / "Block quote ends without a blank line").
+# These are benign formatting artifacts, NOT broken docs.
+#
+# Scoped to the "docutils" category ONLY — real structural breakage
+# (missing toctree pages [toc.not_readable], broken cross-references
+# [ref.*], missing math renderer, undefined directives) is emitted under
+# OTHER categories and still trips `sphinx-build -W`. This keeps -W
+# strict where it matters while not whack-a-moling every docstring.
+suppress_warnings = ["docutils"]
 
 html_theme = "furo"
 html_title = f"scitex-seizure-metrics {release}"

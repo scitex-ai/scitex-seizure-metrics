@@ -5,17 +5,19 @@ Brier(p, y) = mean((p - y)^2)
             = reliability − resolution + uncertainty       (Murphy 1973)
 
 where, for K equal-frequency bins:
+
 - reliability = sum_k (n_k/N) * (mean_p_k - mean_y_k)^2
-                  → 0 when predicted probabilities match observed freqs
+  (→ 0 when predicted probabilities match observed freqs)
 - resolution  = sum_k (n_k/N) * (mean_y_k - mean_y)^2
-                  → high when bins differ in their observed positive rate
+  (→ high when bins differ in their observed positive rate)
 - uncertainty = mean_y * (1 - mean_y)
-                  → property of the data alone (max 0.25 at p=0.5)
+  (→ property of the data alone, max 0.25 at p=0.5)
 
 Smaller Brier is better; the decomposition tells you whether bad scores
 come from miscalibration (reliability) or low discrimination (low
 resolution).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -26,18 +28,20 @@ import numpy as np
 @dataclass
 class CalibrationReport:
     """Container for calibration metrics + per-bin curve points."""
+
     brier: float
     reliability: float
     resolution: float
     uncertainty: float
     expected_calibration_error: float
-    bin_centers: np.ndarray            # mean predicted proba per bin
-    bin_observed: np.ndarray           # observed positive rate per bin
-    bin_counts: np.ndarray             # count per bin
+    bin_centers: np.ndarray  # mean predicted proba per bin
+    bin_observed: np.ndarray  # observed positive rate per bin
+    bin_counts: np.ndarray  # count per bin
 
 
-def calibration_report(y_true, y_proba, *, n_bins: int = 10,
-                       strategy: str = "uniform") -> CalibrationReport:
+def calibration_report(
+    y_true, y_proba, *, n_bins: int = 10, strategy: str = "uniform"
+) -> CalibrationReport:
     """Compute Brier decomposition + reliability table.
 
     Args:
@@ -61,15 +65,12 @@ def calibration_report(y_true, y_proba, *, n_bins: int = 10,
     if strategy == "uniform":
         edges = np.linspace(0.0, 1.0, n_bins + 1)
     elif strategy == "quantile":
-        edges = np.unique(
-            np.quantile(y_proba, np.linspace(0.0, 1.0, n_bins + 1))
-        )
+        edges = np.unique(np.quantile(y_proba, np.linspace(0.0, 1.0, n_bins + 1)))
         if edges.size < 2:
             edges = np.array([0.0, 1.0])
     else:
         raise ValueError(f"unknown strategy {strategy!r}")
-    bin_idx = np.clip(np.digitize(y_proba, edges[1:-1], right=False),
-                      0, len(edges) - 2)
+    bin_idx = np.clip(np.digitize(y_proba, edges[1:-1], right=False), 0, len(edges) - 2)
 
     bin_p, bin_o, bin_c = [], [], []
     for k in range(len(edges) - 1):

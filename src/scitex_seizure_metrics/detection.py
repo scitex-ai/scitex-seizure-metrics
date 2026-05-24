@@ -6,12 +6,11 @@ This is what most of the literature calls "sample-based" evaluation
 threshold-dependent confusion-matrix metrics.
 
 Use this when:
-- Your model emits one probability per fixed-length window (clip-level
-  classification, e.g. 10-min preictal-vs-interictal).
-- You want the imbalance-aware metrics (AUPRC + balanced accuracy +
-  MCC) that no NeuroVista paper has reported (gap noted in the
-  literature review).
+
+- Your model emits one probability per fixed-length window (clip-level classification, e.g. 10-min preictal-vs-interictal).
+- You want the imbalance-aware metrics (AUPRC + balanced accuracy + MCC) that no NeuroVista paper has reported (gap noted in the literature review).
 """
+
 from __future__ import annotations
 
 import numpy as np
