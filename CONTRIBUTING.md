@@ -16,7 +16,7 @@ See [CLA.md](CLA.md) for full details.
 
 ## Reporting Issues
 
-- Search [existing issues](https://github.com/ywatanabe1989/epileval/issues)
+- Search [existing issues](https://github.com/ywatanabe1989/scitex-seizure-metrics/issues)
   before opening a new one.
 - Include a minimal reproducible example when reporting bugs.
 - Specify your Python version, OS, and `scitex` version.
@@ -24,8 +24,8 @@ See [CLA.md](CLA.md) for full details.
 ## Development Setup
 
 ```bash
-git clone git@github.com:ywatanabe1989/epileval.git
-cd epileval
+git clone git@github.com:ywatanabe1989/scitex_seizure_metrics.git
+cd scitex_seizure_metrics
 pip install -e ".[dev]"
 ```
 

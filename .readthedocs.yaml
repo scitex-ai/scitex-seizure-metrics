@@ -1,0 +1,24 @@
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+version: 2
+
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.11"
+
+sphinx:
+  configuration: docs/sphinx/conf.py
+  fail_on_warning: false
+
+# HTML only — multi-format builds occasionally fail on Sphinx PDF/ePub
+# builds for math-heavy projects and the audit doesn't require them.
+formats: []
+
+python:
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
