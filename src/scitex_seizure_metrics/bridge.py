@@ -1,56 +1,88 @@
-"""Cross-paper bridge — analytic bounds between sample- and alarm-based
+r"""Cross-paper bridge — analytic bounds between sample- and alarm-based
 metrics under a declared AlarmPolicy.
 
 Useful when comparing a published paper that reported only sample-based
 AUC against a paper that reported only alarm-based sensitivity + FP/hr.
 
-Derivations (informal):
+Symbols
+-------
 
-Let
-- s = per-window sample sensitivity = P(yhat=1 | y=1)
-- α = per-window false-positive rate = 1 - specificity = P(yhat=1 | y=0)
-- π = pre-ictal-window prevalence = P(y=1)
-- K = ⌈SOP / cadence⌉ = number of independent prediction windows whose
-      "above-threshold" event would catch a seizure under the alarm
-      semantics.
-- R = refractory_seconds (minimum gap between alarms after merging).
-- T = total observation duration (seconds).
+- :math:`s` — per-window sample sensitivity, :math:`\Pr(\hat{y} = 1 \mid y = 1)`.
+- :math:`\alpha` — per-window false-positive rate,
+  :math:`1 - \text{specificity} = \Pr(\hat{y} = 1 \mid y = 0)`.
+- :math:`\pi` — pre-ictal-window prevalence, :math:`\Pr(y = 1)`.
+- :math:`\Delta` — ``cadence_seconds`` (seconds between prediction windows).
+- :math:`\text{SOP}` — Seizure Occurrence Period (seconds).
+- :math:`R` — ``refractory_seconds`` (minimum gap between alarms).
 
-ALARM SENSITIVITY (per-seizure detection probability):
+Effective K
+-----------
 
-Upper bound (independent errors, perfect coverage):
-    alarm_sens_upper = 1 - (1 - s) ** K
+The number of independent prediction windows whose "above-threshold"
+event would catch a seizure under the alarm semantics:
 
-Lower bound (fully clustered errors — if any one of the K windows is
-correctly above threshold, all K are):
-    alarm_sens_lower = s
+.. math::
 
-Prevalence-adjusted upper (when prevalence is very low, even 'perfect'
-sample-sens may not give K independent chances because there may not
-be K positive-labelled windows in the SOP):
-    K_eff = min(K, max(1, int(round(SOP * π / cadence))))
-    alarm_sens_upper_with_prevalence = 1 - (1 - s) ** K_eff
+   K = \left\lceil \frac{\text{SOP}}{\Delta} \right\rceil
 
-FP/hr:
+Prevalence-adjusted effective K (very-low-prevalence streams may not
+contain :math:`K` pre-ictal-labelled windows inside one SOP):
+
+.. math::
+
+   K_{\text{eff}} = \min\!\Big(K,\ \max\!\big(1,\ \operatorname{round}(K \cdot \pi)\big)\Big)
+
+Alarm sensitivity (per-seizure detection probability)
+-----------------------------------------------------
+
+Upper bound (independent errors — optimistic envelope):
+
+.. math::
+
+   \text{alarm\_sens}_{\text{upper}} = 1 - (1 - s)^{K_{\text{eff}}}
+
+Lower bound (fully-clustered errors — if any one of the
+:math:`K_{\text{eff}}` windows is correctly above threshold, all are;
+pessimistic envelope):
+
+.. math::
+
+   \text{alarm\_sens}_{\text{lower}} = s
+
+FP/hr (alarms per hour)
+-----------------------
 
 Naive (no refractory, independent errors):
-    fp_hr_naive = α * (3600 / cadence) * (1 - π)
 
-Refractory cap (no two alarms within R, regardless of α):
-    fp_hr_cap = 3600 / R
+.. math::
+
+   \text{FP/h}_{\text{naive}} = \alpha \cdot \frac{3600}{\Delta} \cdot (1 - \pi)
+
+Refractory cap (no two alarms within :math:`R` seconds, regardless of
+:math:`\alpha`):
+
+.. math::
+
+   \text{FP/h}_{\text{cap}} = \frac{3600}{R}
 
 Upper bound:
-    fp_hr_upper = min(fp_hr_naive, fp_hr_cap)
 
-Lower bound (under maximal correlation, FP-clustering, alarm count
-collapses; conservative non-trivial lower bound depends on the
-correlation length we cannot infer from sample metrics alone):
-    fp_hr_lower = 0.0   (we report 0 by convention; calibrated lower
-                         bounds require an autocorr-proxy parameter).
+.. math::
 
-References:
+   \text{FP/h}_{\text{upper}} = \min\!\big(\text{FP/h}_{\text{naive}},\ \text{FP/h}_{\text{cap}}\big)
+
+Lower bound: ``0.0`` by convention. Under maximal positive correlation
+the alarm count collapses; a calibrated non-trivial lower bound requires
+an autocorrelation-proxy parameter that sample-only metrics do not
+identify.
+
+References
+----------
+
 - Andrade et al. 2024 — sample- vs alarm-based perspectives.
 - Mormann et al. 2007 — definition of false-prediction rate.
+- ``docs/math/sample_to_alarm.md`` — paper-ready derivation including
+  the inverse direction (alarm → sample) and a worked example.
 """
 from __future__ import annotations
 

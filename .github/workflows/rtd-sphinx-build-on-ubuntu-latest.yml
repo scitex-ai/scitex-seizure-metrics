@@ -25,8 +25,11 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Install package + docs deps
-        run: pip install -e ".[docs]"
+        run: uv pip install --system -e ".[docs]"
 
       - name: Build Sphinx HTML (warnings fail PRs only)
         run: |

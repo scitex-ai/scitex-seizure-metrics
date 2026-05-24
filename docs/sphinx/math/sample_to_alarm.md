@@ -1,0 +1,1 @@
+../../math/sample_to_alarm.md
