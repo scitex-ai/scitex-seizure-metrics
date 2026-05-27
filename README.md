@@ -101,13 +101,16 @@ from scitex_seizure_metrics import detection, forecasting, AlarmPolicy
 
 # Per-window detection metrics (sensitivity, false-positives/hour, ...)
 m = detection.evaluate(y_true=labels, y_pred=preds, fs=256)
-print(m["sensitivity"], m["fp_per_hour"])
+print(m.sensitivity, m.fp_per_hour)
 
 # Forecasting metrics (Improvement-over-chance, AUROC, alarm count)
 f = forecasting.evaluate(
-    seizure_times=onsets, alarm_times=alarms, policy=AlarmPolicy.STANDARD
+    alarm_times=alarms, seizure_times=onsets,
+    policy=AlarmPolicy(sph_seconds=300, sop_seconds=600,
+                       cadence_seconds=60, refractory_seconds=600),
+    total_recording_time=24 * 3600,
 )
-print(f["ioc"], f["auroc"])
+print(f.ioc, f.roc_auc)
 ```
 
 ```mermaid
@@ -140,7 +143,7 @@ rep = forecasting.evaluate_stream(
 print(rep.sensitivity, rep.fp_per_hour, rep.ioc, rep.time_in_warning_frac)
 ```
 
-See `examples/quick_start_detection.py` and `examples/quick_start_forecasting.py`.
+See `examples/01_detection_quick_start.ipynb`, `examples/02_forecasting_quick_start.ipynb`, and the other notebooks under `examples/` for end-to-end workflows.
 
 ## Architecture
 

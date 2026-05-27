@@ -20,12 +20,13 @@ m = detection.evaluate(
     y_proba=preds,        # predicted probability per window
     fs=256,               # sampling rate (Hz) for FP-per-hour conversion
 )
-print(m["sensitivity"], m["fp_per_hour"], m["auroc"], m["brier"])
+print(m.sensitivity, m.fp_per_hour, m.roc_auc, m.brier)
 ```
 
 Outputs every sample-based metric used in the literature (AUROC, AUPRC,
-Brier, MCC, sensitivity at fixed specificity, ...). All values fixed
-to a single window size; no implicit smoothing.
+Brier, MCC, balanced accuracy, sensitivity, precision). All values fixed
+to a single window size; no implicit smoothing. `MetricsReport` uses
+attribute access (not dict-style) — see `scitex_seizure_metrics.report`.
 
 ## Forecasting (alarm-based)
 
@@ -35,16 +36,19 @@ from scitex_seizure_metrics import forecasting, AlarmPolicy
 policy = AlarmPolicy(
     sph_seconds=300,       # seizure prediction horizon
     sop_seconds=600,       # seizure occurrence period
+    cadence_seconds=60,
     refractory_seconds=60,
-    fp_denominator="interictal_hours",
+    alarm_threshold=0.5,
+    fp_denominator="interictal",  # "interictal" or "total"
 )
 f = forecasting.evaluate_stream(
     proba=alarm_probs,
     times=alarm_times,
     seizures=onset_times,
     policy=policy,
+    total_recording_time=24 * 3600,
 )
-print(f["ioc"], f["sensitivity"], f["fp_per_hour"], f["time_in_warning_pct"])
+print(f.ioc, f.sensitivity, f.fp_per_hour, f.time_in_warning_frac)
 ```
 
 `AlarmPolicy` is required — there are no silent defaults. Callers
@@ -60,11 +64,14 @@ sensitivity / FP-per-hour given the chosen `AlarmPolicy`:
 from scitex_seizure_metrics import bridge
 
 bounds = bridge.sample_to_alarm(
-    sample_metrics=m,
-    policy=policy,
-    seizure_count=42,
-    interictal_hours=120.0,
+    sample_sensitivity=0.79,
+    sample_specificity=0.85,
+    sop_seconds=600,
+    cadence_seconds=60,
+    refractory_seconds=600,
+    prevalence=0.5,
 )
+print(bounds.alarm_sensitivity_upper, bounds.fp_per_hour_upper)
 ```
 
 ## Paper-replica shims
