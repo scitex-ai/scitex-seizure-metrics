@@ -101,3 +101,7 @@ library_dirs = ["src", "tests", "examples"]
 # exception inline so the audit passes on every scitex-dev version,
 # independent of release timing.
 ps168_secret_exceptions = ["GH_PERSONAL_ACCESS_TOKEN"]
+
+dependencies = [
+    "scitex-dev>=0.17.8",
+]
