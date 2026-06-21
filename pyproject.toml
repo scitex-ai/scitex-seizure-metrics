@@ -29,7 +29,31 @@ dependencies = [
 
 [project.optional-dependencies]
 plots = ["matplotlib"]
-test = ["pytest", "pytest-cov", "pytest-timeout", "matplotlib"]
+# `scitex-session`/`figrecipe` back the runnable examples: `examples/06_*.py`
+# uses `@stx.session` (the standalone session lib — NOT the `scitex` umbrella,
+# which PS-139 bans), `examples/03_*.ipynb` uses figrecipe. The example tests
+# import them, so they ride in the test/dev/all extras CI installs.
+#
+# The jupyter toolchain (nbconvert/nbformat/ipykernel) needed to *execute*
+# notebooks lives only in the `notebooks` extra — deliberately NOT in
+# test/dev/all. The `tests/examples/test_0*_*.ipynb` smoke tests
+# `pytest.importorskip("nbconvert")`, so absent the toolchain they skip
+# (matching the established CI baseline). Pulling them into the CI venv
+# un-skips those tests, which then fail on a pre-existing harness bug:
+# `subprocess.run([sys.executable, "-m", "jupyter", "nbconvert", ...])`
+# resolves `jupyter` from `~/.local/bin` on the self-hosted runner (outside
+# the venv) where `nbconvert` is absent. The committed notebook outputs
+# (PS-504) are produced with this extra installed locally.
+examples = ["scitex-session", "figrecipe", "matplotlib"]
+notebooks = ["nbformat", "nbconvert", "ipykernel"]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-timeout",
+    "matplotlib",
+    "scitex-session",
+    "figrecipe",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -37,6 +61,8 @@ dev = [
     "ruff",
     "scitex-dev>=0.11.7",
     "matplotlib",
+    "scitex-session",
+    "figrecipe",
 ]
 docs = [
     "sphinx>=7",
@@ -49,6 +75,7 @@ all = [
     "scitex-seizure-metrics[plots]",
     "scitex-seizure-metrics[docs]",
     "scitex-seizure-metrics[dev]",
+    "scitex-seizure-metrics[examples]",
 ]
 
 [project.urls]

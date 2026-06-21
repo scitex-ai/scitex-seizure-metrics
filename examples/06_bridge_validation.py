@@ -21,8 +21,9 @@ Run:
     python 06_bridge_validation.py --help
 
 Outputs:
-    docs/bridge_validation.png / .pdf         (README asset)
-    examples/06_bridge_validation_out/bridge_validation.csv
+    docs/bridge_validation.png / .pdf                          (README asset)
+    examples/06_bridge_validation_out/FINISHED_SUCCESS/<id>/   (session run:
+        bridge_validation.csv + captured logs/config)
 """
 
 from __future__ import annotations
@@ -31,6 +32,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+import scitex_session as stx  # standalone session lib (no umbrella drag; PS-139)
 
 from scitex_seizure_metrics import AlarmPolicy, bridge, forecasting
 
@@ -372,29 +374,42 @@ def make_figure(results: list[BridgeValidationResult], *, save_path=None):
     return fig, axes
 
 
-def main() -> int:
+@stx.session
+def main(CONFIG=stx.INJECTED, logger=stx.INJECTED) -> int:
+    """Run every validation setting; write the table + README figure.
+
+    The table is written under the session output directory
+    (``CONFIG.SDIR_RUN`` -> ``06_bridge_validation_out/FINISHED_SUCCESS/
+    <session_id>/``); the figure goes to ``docs/bridge_validation.{png,pdf}``
+    because the README embeds it.
+    """
     import matplotlib
 
     matplotlib.use("Agg")
 
-    here = Path(__file__).resolve()
-    repo = here.parents[1]
-    out_dir = here.parent / "06_bridge_validation_out"
-    out_dir.mkdir(parents=True, exist_ok=True)
+    repo = Path(__file__).resolve().parents[1]
+    out_dir = Path(CONFIG.SDIR_RUN)  # session-managed; FINISHED_SUCCESS on return
     fig_base = repo / "docs" / "bridge_validation"  # README asset
 
     results = run_validation()
     df = results_to_frame(results)
-    print(df.to_string(index=False))
+    logger.info("Bridge-validation results:\n" + df.to_string(index=False))
     all_pass = all(r.all_pass for r in results)
-    print(f"\nAll settings PASS (both directions): {all_pass}")
+    logger.info(f"All settings PASS (both directions): {all_pass}")
 
-    df.to_csv(out_dir / "bridge_validation.csv", index=False)
+    csv_path = out_dir / "bridge_validation.csv"
+    df.to_csv(csv_path, index=False)
     make_figure(results, save_path=fig_base)
-    print(f"figure -> {fig_base}.png / .pdf")
-    print(f"table  -> {out_dir / 'bridge_validation.csv'}")
-    return 0 if all_pass else 1
+    logger.info(f"figure -> {fig_base}.png / .pdf")
+    logger.info(f"table  -> {csv_path}")
+
+    # Fail loud: a violated analytic bound must mark the session FAILED, not
+    # quietly commit a green run.
+    failed = [r for r in results if not r.all_pass]
+    if failed:
+        raise AssertionError(f"{len(failed)} setting(s) violated a bridge bound")
+    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

@@ -32,6 +32,18 @@ GITIGNORED/
 .tmp/
 *.log
 
+# SciTeX runtime state (clew DB etc. created by @stx.session runs)
+.scitex/
+
+# @stx.session bookkeeping in example _out/ dirs: keep the committed demo
+# artefacts (e.g. the FINISHED_SUCCESS/*/*.csv that PS-503 wants visible on
+# GitHub) but drop per-run, machine-specific churn (RUNNING/FAILED states,
+# captured logs, and the absolute-path CONFIG snapshots).
+examples/*_out/RUNNING/
+examples/*_out/FAILED/
+examples/*_out/**/CONFIGS/
+examples/*_out/**/logs/
+
 # generated artefacts
 /tmp/epileval-plots/
 
