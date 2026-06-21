@@ -23,6 +23,7 @@ Unified evaluation library for seizure detection and forecasting.
    :caption: Math:
 
    math/sample_to_alarm
+   math/sensitivity_tiw
 
 Indices
 -------

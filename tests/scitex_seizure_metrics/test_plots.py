@@ -143,6 +143,162 @@ def test_plot_reliability_diagram():
     assert fig is not None
 
 
+def test_plot_sensitivity_tiw_axis_labels():
+    # Arrange
+    from scitex_seizure_metrics import sensitivity_tiw
+
+    rng = np.random.default_rng(0)
+    times = np.arange(0, 24 * 3600.0, 60.0)
+    seizures = np.linspace(2 * 3600.0, 22 * 3600.0, 8)
+    scores = 0.05 + 0.05 * rng.random(times.size)
+    for sz in seizures:
+        m = (times >= sz - 600) & (times < sz)
+        scores[m] = 0.9
+    pol = AlarmPolicy(
+        sph_seconds=0, sop_seconds=600, cadence_seconds=60, refractory_seconds=600
+    )
+    curve = sensitivity_tiw.sensitivity_tiw_curve(
+        scores, pol, seizure_times=seizures, times=times
+    )
+    # Act
+    fig, ax = plots.sensitivity_tiw([curve])
+    fig.savefig(f"{PLOT_DIR}/sensitivity_tiw.png", dpi=110, bbox_inches="tight")
+    plt.close(fig)
+    # Assert
+    assert "time-in-warning" in ax.get_xlabel().lower()
+
+
+def test_plot_sensitivity_tiw_y_is_sensitivity():
+    # Arrange
+    from scitex_seizure_metrics import sensitivity_tiw
+
+    rng = np.random.default_rng(0)
+    times = np.arange(0, 24 * 3600.0, 60.0)
+    seizures = np.linspace(2 * 3600.0, 22 * 3600.0, 8)
+    scores = 0.05 + 0.05 * rng.random(times.size)
+    for sz in seizures:
+        scores[(times >= sz - 600) & (times < sz)] = 0.9
+    pol = AlarmPolicy(
+        sph_seconds=0, sop_seconds=600, cadence_seconds=60, refractory_seconds=600
+    )
+    curve = sensitivity_tiw.sensitivity_tiw_curve(
+        scores, pol, seizure_times=seizures, times=times
+    )
+    # Act
+    fig, ax = plots.sensitivity_tiw([curve])
+    plt.close(fig)
+    # Assert
+    assert "sensitivity" in ax.get_ylabel().lower()
+
+
+def test_plot_sensitivity_tiw_single_curve_accepted():
+    # Arrange
+    from scitex_seizure_metrics import sensitivity_tiw
+
+    rng = np.random.default_rng(0)
+    times = np.arange(0, 12 * 3600.0, 60.0)
+    seizures = np.linspace(2 * 3600.0, 10 * 3600.0, 4)
+    scores = rng.random(times.size)
+    pol = AlarmPolicy(
+        sph_seconds=0, sop_seconds=600, cadence_seconds=60, refractory_seconds=600
+    )
+    curve = sensitivity_tiw.sensitivity_tiw_curve(
+        scores, pol, seizure_times=seizures, times=times
+    )
+    # Act — pass a bare curve (not a list).
+    fig, ax = plots.sensitivity_tiw(curve)
+    plt.close(fig)
+    # Assert
+    assert fig is not None
+
+
+def _straddle_curve():
+    """A curve whose best-within-budget point sits left of the budget — the
+    geometry that made the operating-point marker float off a slanted line."""
+    from scitex_seizure_metrics.sensitivity_tiw._curve import (
+        SensitivityTiWCurve,
+        area_above_diagonal,
+        sensitivity_at_tiw,
+    )
+
+    tiw = np.array([0.0, 0.15, 0.30, 1.0])
+    sens = np.array([0.0, 0.42, 0.90, 1.0])
+    return SensitivityTiWCurve(
+        thresholds=np.arange(4.0),
+        tiw=tiw,
+        sensitivity=sens,
+        n_seizures=10,
+        improvement_over_chance=area_above_diagonal(tiw, sens),
+        sensitivity_at_target_tiw=sensitivity_at_tiw(tiw, sens, 0.20),
+        tiw_at_target_sensitivity=float("nan"),
+        target_tiw=0.20,
+        name="straddle",
+    )
+
+
+def _steps_post_value(xs, ys, x):
+    """Value a steps-post polyline holds at coordinate ``x``."""
+    idx = int(np.searchsorted(xs, x, side="right") - 1)
+    idx = max(0, min(idx, len(xs) - 1))
+    return float(ys[idx])
+
+
+def test_plot_sensitivity_tiw_marker_sits_on_curve():
+    # Arrange — the straddling-curve marker-float regression.
+    from scitex_seizure_metrics import plots
+
+    c = _straddle_curve()
+    fig, ax = plots.sensitivity_tiw([c])
+    line = next(line for line in ax.lines if line.get_label() == "Straddle")
+    # Act — value of the drawn (steps-post) envelope at the marker's x.
+    on_line = _steps_post_value(
+        line.get_xdata(), line.get_ydata(), c.target_tiw * 100.0
+    )
+    # Assert — marker y equals the drawn line there (no float above/below).
+    plt.close(fig)
+    assert on_line == pytest.approx(c.sensitivity_at_target_tiw * 100.0)
+
+
+def test_plot_sensitivity_tiw_curve_is_monotone_nondecreasing():
+    # Arrange — the drawn envelope must never decrease as TiW grows.
+    from scitex_seizure_metrics import plots
+
+    c = _straddle_curve()
+    fig, ax = plots.sensitivity_tiw([c])
+    line = next(line for line in ax.lines if line.get_label() == "Straddle")
+    # Act
+    ys = line.get_ydata()
+    plt.close(fig)
+    # Assert
+    assert np.all(np.diff(ys) >= -1e-9)
+
+
+def test_plot_sensitivity_tiw_default_aspect_is_square():
+    # Arrange
+    from scitex_seizure_metrics import plots
+
+    c = _straddle_curve()
+    # Act
+    fig, ax = plots.sensitivity_tiw([c])
+    aspect = ax.get_aspect()
+    plt.close(fig)
+    # Assert — default square (1.0) box aspect.
+    assert aspect == 1.0
+
+
+def test_plot_sensitivity_tiw_aspect_override():
+    # Arrange
+    from scitex_seizure_metrics import plots
+
+    c = _straddle_curve()
+    # Act
+    fig, ax = plots.sensitivity_tiw([c], aspect="auto")
+    aspect = ax.get_aspect()
+    plt.close(fig)
+    # Assert
+    assert aspect == "auto"
+
+
 def test_plot_metric_correlation_heatmap():
     # Arrange
     rng = np.random.default_rng(0)
