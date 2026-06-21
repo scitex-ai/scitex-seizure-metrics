@@ -15,22 +15,23 @@ Symbols
 - :math:`\text{SOP}` — Seizure Occurrence Period (seconds).
 - :math:`R` — ``refractory_seconds`` (minimum gap between alarms).
 
-Effective K
------------
+Windows per SOP (K)
+-------------------
 
-The number of independent prediction windows whose "above-threshold"
-event would catch a seizure under the alarm semantics:
+The number of prediction windows inside one Seizure Occurrence Period —
+i.e. the number of independent chances to catch a given seizure, since a
+seizure is "caught" iff at least one of its SOP windows fires:
 
 .. math::
 
    K = \left\lceil \frac{\text{SOP}}{\Delta} \right\rceil
 
-Prevalence-adjusted effective K (very-low-prevalence streams may not
-contain :math:`K` pre-ictal-labelled windows inside one SOP):
-
-.. math::
-
-   K_{\text{eff}} = \min\!\Big(K,\ \max\!\big(1,\ \operatorname{round}(K \cdot \pi)\big)\Big)
+By construction every seizure's SOP contains exactly :math:`K` windows,
+*independent of the global prevalence* :math:`\pi`. Prevalence governs
+how many windows are pre-ictal across the whole stream (and hence the
+FP/hr negative-window count), not how many windows sit inside a single
+SOP. We therefore use :math:`K_{\text{eff}} = K` for the per-seizure
+detection bounds and do **not** shrink it by :math:`\pi`.
 
 Alarm sensitivity (per-seizure detection probability)
 -----------------------------------------------------
@@ -39,15 +40,21 @@ Upper bound (independent errors — optimistic envelope):
 
 .. math::
 
-   \text{alarm\_sens}_{\text{upper}} = 1 - (1 - s)^{K_{\text{eff}}}
+   \text{alarm\_sens}_{\text{upper}} = 1 - (1 - s)^{K}
 
-Lower bound (fully-clustered errors — if any one of the
-:math:`K_{\text{eff}}` windows is correctly above threshold, all are;
-pessimistic envelope):
+Lower bound (fully-clustered errors — if the :math:`K` windows inside one
+SOP are perfectly correlated, either all fire or none does, so the
+per-seizure detection probability collapses to the per-window
+sensitivity; pessimistic envelope):
 
 .. math::
 
    \text{alarm\_sens}_{\text{lower}} = s
+
+Because :math:`K = \lceil \text{SOP} / \Delta \rceil`, a longer SOP now
+correctly widens the detection band (more chances per seizure) — the
+earlier prevalence-adjustment made SOP = 15 s and SOP = 60 s degenerate
+at low :math:`\pi`, which was wrong.
 
 FP/hr (alarms per hour)
 -----------------------
@@ -84,6 +91,7 @@ References
 - ``docs/math/sample_to_alarm.md`` — paper-ready derivation including
   the inverse direction (alarm → sample) and a worked example.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -96,13 +104,15 @@ class SampleToAlarmBounds:
     """Analytic bounds on alarm-based metrics derived from sample-based.
 
     Attrs:
-        alarm_sensitivity_upper: 1 - (1 - s) ** K_eff
+        alarm_sensitivity_upper: 1 - (1 - s) ** K
         alarm_sensitivity_lower: s (worst-case clustering)
         fp_per_hour_lower: 0.0 by convention (correlation-dependent)
         fp_per_hour_upper: min(α * preds_per_hour * (1 - π), 3600 / R)
-        K_effective: number of independent chances actually used
+        K_effective: windows per SOP, K = ceil(SOP / cadence) — the
+            number of independent chances to detect each seizure
         notes: free-form list of pertinent caveats
     """
+
     alarm_sensitivity_upper: float
     alarm_sensitivity_lower: float
     fp_per_hour_lower: float
@@ -111,12 +121,15 @@ class SampleToAlarmBounds:
     notes: tuple[str, ...] = ()
 
 
-def sample_to_alarm(*, sample_sensitivity: float,
-                    sample_specificity: float,
-                    sop_seconds: float,
-                    cadence_seconds: float,
-                    refractory_seconds: float = 0.0,
-                    prevalence: float = 0.5) -> SampleToAlarmBounds:
+def sample_to_alarm(
+    *,
+    sample_sensitivity: float,
+    sample_specificity: float,
+    sop_seconds: float,
+    cadence_seconds: float,
+    refractory_seconds: float = 0.0,
+    prevalence: float = 0.5,
+) -> SampleToAlarmBounds:
     """Bound alarm-based metrics from sample-based metrics + AlarmPolicy.
 
     Args:
@@ -126,30 +139,32 @@ def sample_to_alarm(*, sample_sensitivity: float,
         cadence_seconds: time step between predictions.
         refractory_seconds: minimum gap between alarms.
         prevalence: per-window prior probability of pre-ictal class.
-            Lower prevalence reduces K_effective (the number of
-            independent chances to detect each seizure) AND reduces
-            FP/hr (because the per-hour count of negative windows
-            scales with 1-π).
+            Affects ONLY FP/hr: the per-hour count of negative windows
+            scales with 1-π. It does NOT shrink the per-seizure
+            detection bounds — every seizure's SOP holds K windows by
+            construction, regardless of the global prevalence.
 
     Returns:
-        SampleToAlarmBounds with four numbers and K_effective.
+        SampleToAlarmBounds with four numbers and K_effective (= K).
     """
     if cadence_seconds <= 0 or sop_seconds <= 0:
         raise ValueError("cadence_seconds and sop_seconds must be > 0")
-    for label, val in [("sensitivity", sample_sensitivity),
-                       ("specificity", sample_specificity),
-                       ("prevalence", prevalence)]:
+    for label, val in [
+        ("sensitivity", sample_sensitivity),
+        ("specificity", sample_specificity),
+        ("prevalence", prevalence),
+    ]:
         if not (0 <= val <= 1):
             raise ValueError(f"{label} must be in [0, 1]; got {val}")
 
     s = sample_sensitivity
     alpha = 1.0 - sample_specificity
+    # Windows per SOP = independent chances per seizure. Each SOP holds
+    # K windows by construction, independent of the GLOBAL prevalence π
+    # (π governs the per-hour negative-window count for FP/hr, not how
+    # many windows live inside one SOP), so K_eff = K — no shrink by π.
     K = max(1, int(np.ceil(sop_seconds / cadence_seconds)))
-    # Prevalence-adjusted effective K: very-low-prevalence streams
-    # cannot offer K independent chances because there may not be K
-    # pre-ictal-labelled windows inside the SOP.
-    K_eff = max(1, int(round(K * prevalence))) if prevalence < 1.0 else K
-    K_eff = min(K, K_eff if K_eff > 0 else 1)
+    K_eff = K
 
     alarm_sens_upper = 1.0 - (1.0 - s) ** K_eff
     alarm_sens_lower = s
@@ -162,8 +177,6 @@ def sample_to_alarm(*, sample_sensitivity: float,
         fph_upper = naive_fph
 
     notes = []
-    if prevalence < 0.05:
-        notes.append("very low prevalence — K_eff reduced; bounds wider")
     if refractory_seconds <= 0:
         notes.append("refractory=0 — fp_per_hour_upper not capped")
 
@@ -177,10 +190,15 @@ def sample_to_alarm(*, sample_sensitivity: float,
     )
 
 
-def alarm_to_sample(*, alarm_sensitivity: float, fp_per_hour: float,
-                    sop_seconds: float, cadence_seconds: float,
-                    refractory_seconds: float = 0.0,
-                    prevalence: float = 0.5) -> dict:
+def alarm_to_sample(
+    *,
+    alarm_sensitivity: float,
+    fp_per_hour: float,
+    sop_seconds: float,
+    cadence_seconds: float,
+    refractory_seconds: float = 0.0,
+    prevalence: float = 0.5,
+) -> dict:
     """Reverse-bound: feasible sample-metric ranges from alarm metrics.
 
     Returns dict with sample_sensitivity_lower / upper and
@@ -191,9 +209,9 @@ def alarm_to_sample(*, alarm_sensitivity: float, fp_per_hour: float,
     if not (0 <= alarm_sensitivity <= 1):
         raise ValueError("alarm_sensitivity must be in [0, 1]")
 
+    # Mirror sample_to_alarm: K windows per SOP, independent of π.
     K = max(1, int(np.ceil(sop_seconds / cadence_seconds)))
-    K_eff = max(1, int(round(K * prevalence))) if prevalence < 1.0 else K
-    K_eff = min(K, K_eff if K_eff > 0 else 1)
+    K_eff = K
 
     if alarm_sensitivity <= 0:
         sens_lower = 0.0

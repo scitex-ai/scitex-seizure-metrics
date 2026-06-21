@@ -184,12 +184,43 @@ def area_above_diagonal(tiw: np.ndarray, sens: np.ndarray) -> float:
     return float(trapz(diff, t_full))
 
 
+def monotone_upper_envelope(
+    tiw: np.ndarray, sens: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
+    """The achievable (TiW, sensitivity) frontier as a non-decreasing step.
+
+    A forecaster can always discard signal to move *down* the curve, so
+    the meaningful operating frontier at any time-in-warning budget is the
+    running maximum of sensitivity over all operating points whose TiW
+    does not exceed that budget. This collapses duplicate-TiW points to
+    their best sensitivity and then takes the cumulative max, giving the
+    monotone non-decreasing envelope that
+    :func:`sensitivity_at_tiw` reads off (so a marker placed at
+    ``(target_tiw, sensitivity_at_tiw(target_tiw))`` lands exactly on this
+    envelope, never floating above or below the drawn line).
+
+    Returns:
+        ``(env_tiw, env_sens)`` sorted by ascending TiW. Empty input
+        returns two empty arrays.
+    """
+    tiw = np.asarray(tiw, dtype=float)
+    sens = np.asarray(sens, dtype=float)
+    if tiw.size == 0:
+        return np.empty(0), np.empty(0)
+    uniq_t, inv = np.unique(tiw, return_inverse=True)
+    best = np.full(uniq_t.shape, -np.inf)
+    np.maximum.at(best, inv, sens)
+    env = np.maximum.accumulate(best)
+    return uniq_t, env
+
+
 def sensitivity_at_tiw(tiw: np.ndarray, sens: np.ndarray, target_tiw: float) -> float:
     """Best sensitivity achievable at TiW <= ``target_tiw``.
 
     Field convention (Karoly): "what sensitivity can I get while staying
     inside my warning-time budget?" — max sensitivity over operating
-    points whose TiW does not exceed the budget.
+    points whose TiW does not exceed the budget. This is the value of the
+    :func:`monotone_upper_envelope` at ``target_tiw``.
     """
     mask = tiw <= target_tiw + 1e-12
     if not np.any(mask):

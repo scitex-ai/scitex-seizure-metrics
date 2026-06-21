@@ -32,7 +32,11 @@ References
 
 from __future__ import annotations
 
-from ._curve import SensitivityTiWCurve, sensitivity_tiw_curve
+from ._curve import (
+    SensitivityTiWCurve,
+    monotone_upper_envelope,
+    sensitivity_tiw_curve,
+)
 from ._inputs import seizures_from_labels
 from ._significance import (
     TiWSignificance,
@@ -44,6 +48,7 @@ from ._significance import (
 __all__ = [
     "sensitivity_tiw_curve",
     "SensitivityTiWCurve",
+    "monotone_upper_envelope",
     "chance_sensitivity",
     "binomial_above_chance",
     "surrogate_above_chance",

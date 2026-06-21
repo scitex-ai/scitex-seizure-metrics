@@ -301,6 +301,21 @@ plots.metric_correlation_heatmap(per_patient_df)  # redundancy diagnostic
 
 </details>
 
+## Empirical validation of the sample↔alarm bridge
+
+The analytic [`bridge`](docs/math/sample_to_alarm.md) is validated by Monte Carlo. For each setting we synthesise a long per-window stream with a **known** per-window sensitivity `s` and specificity `1 − α` plus seizures, run the `AlarmPolicy`, and measure the **empirical** alarm-sensitivity and FP/hr. We check (i) the empirical values land inside the analytic `sample_to_alarm` `[lower, upper]` bands, and (ii) the reverse `alarm_to_sample` recovers the true per-window `s` and specificity. Each seizure's SOP holds `K = ceil(SOP / cadence)` windows by construction, so the per-seizure detection bound is `1 − (1 − s)^K` independent of prevalence — the soundness fix that replaced an earlier prevalence-shrunk `K_eff` which collapsed the upper bound to `s` at realistic low prevalence (empirical ≈ 1.0 vs that bound 0.5 → violated).
+
+![Empirical validation of the sample↔alarm bridge](docs/bridge_validation.png)
+
+| s | specificity | prevalence | K | empirical alarm-sens | alarm-sens band | empirical FP/hr | FP/hr band | sens | FP/hr | reverse s | reverse spec |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.50 | 0.90 | 0.05 | 10 | 0.950 | [0.50, 1.00] | 3.010 | [0.00, 5.70] | PASS | PASS | PASS | PASS |
+| 0.30 | 0.95 | 0.02 | 30 | 0.942 | [0.30, 1.00] | 2.382 | [0.00, 4.00] | PASS | PASS | PASS | PASS |
+| 0.70 | 0.85 | 0.10 | 5 | 0.850 | [0.70, 1.00] | 4.930 | [0.00, 8.10] | PASS | PASS | PASS | PASS |
+| 0.60 | 0.99 | 0.01 | 60 | 0.992 | [0.60, 1.00] | 0.748 | [0.00, 1.19] | PASS | PASS | PASS | PASS |
+
+All four settings pass in **both** directions. Reproduce with `python examples/06_bridge_validation.py` (writes the figure to `docs/bridge_validation.{png,pdf}` and the table to `examples/06_bridge_validation_out/`); CI guards it via `tests/examples/test_06_bridge_validation.py`.
+
 ## References
 
 - Andrade I, Teixeira C, Pinto M (2024). On the performance of seizure prediction machine learning methods across different databases: the sample and alarm-based perspectives. *Frontiers in Neuroscience*. [doi:10.3389/fnins.2024.1417748](https://doi.org/10.3389/fnins.2024.1417748).

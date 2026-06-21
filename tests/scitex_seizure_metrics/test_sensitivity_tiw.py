@@ -419,3 +419,44 @@ def test_seizures_from_labels_counts_runs():
     onsets = sensitivity_tiw.seizures_from_labels(labels, times)
     # Assert
     assert onsets.size == 2
+
+
+# --------------------------------------------------------------------------
+# Monotone upper envelope (operating frontier the marker reads off)
+# --------------------------------------------------------------------------
+
+
+def test_monotone_upper_envelope_is_nondecreasing():
+    # Arrange — a non-monotone raw curve.
+    tiw = np.array([0.0, 0.1, 0.2, 0.3, 0.5])
+    sens = np.array([0.0, 0.6, 0.3, 0.9, 0.4])
+    # Act
+    _, env = sensitivity_tiw.monotone_upper_envelope(tiw, sens)
+    # Assert
+    assert np.all(np.diff(env) >= -1e-12)
+
+
+def test_monotone_upper_envelope_collapses_duplicate_tiw_to_max():
+    # Arrange — two operating points at the same TiW.
+    tiw = np.array([0.2, 0.2, 0.4])
+    sens = np.array([0.3, 0.7, 0.8])
+    # Act
+    env_t, env_s = sensitivity_tiw.monotone_upper_envelope(tiw, sens)
+    # Assert
+    assert env_t.size == 2 and env_s[0] == pytest.approx(0.7)
+
+
+def test_monotone_upper_envelope_value_at_target_equals_sensitivity_at_tiw():
+    # Arrange — straddling curve where the best-within-budget point sits
+    # strictly left of the budget (the marker-float bug geometry).
+    from scitex_seizure_metrics.sensitivity_tiw import _curve
+
+    tiw = np.array([0.0, 0.15, 0.30, 1.0])
+    sens = np.array([0.0, 0.42, 0.90, 1.0])
+    target = 0.20
+    env_t, env_s = sensitivity_tiw.monotone_upper_envelope(tiw, sens)
+    # Act — value the steps-post envelope holds at the target budget.
+    held = float(env_s[env_t <= target + 1e-12].max())
+    scalar = _curve.sensitivity_at_tiw(tiw, sens, target)
+    # Assert — marker scalar lands exactly on the envelope staircase.
+    assert held == pytest.approx(scalar)

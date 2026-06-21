@@ -198,6 +198,7 @@ def sensitivity_tiw(
     show_chance: bool = True,
     mark_operating_point: bool = True,
     labels=None,
+    aspect: float = 1.0,
     save_path: str | None = None,
 ):
     """Sensitivity vs time-in-warning trade-off (Karoly 2017 Fig 6).
@@ -207,6 +208,14 @@ def sensitivity_tiw(
     (x), overlaid on the chance diagonal (sensitivity == TiW). A curve
     above the diagonal carries signal beyond a time-matched coin.
 
+    The drawn curve is each subject's **monotone upper envelope** — the
+    best sensitivity achievable at each time-in-warning budget (a
+    forecaster can always discard signal to slide down-left, so the
+    envelope is the meaningful operating frontier). Drawing the envelope
+    guarantees the target-budget operating-point marker sits *on* the
+    curve rather than floating above or below a linearly-interpolated raw
+    polyline.
+
     Args:
         curves: a single ``SensitivityTiWCurve`` or an iterable of them
             (one line per subject).
@@ -214,9 +223,12 @@ def sensitivity_tiw(
         percent: show axes as percentages (0-100) instead of fractions.
         show_chance: overlay the chance diagonal.
         mark_operating_point: mark each curve's sensitivity-at-target-TiW
-            operating point.
+            operating point (lands on the envelope).
         labels: optional list of legend labels (one per curve); falls
             back to each curve's ``.name`` (capital-first).
+        aspect: data aspect ratio (height / width). Defaults to ``1.0``
+            so the square 0-100 % axes are visually square; pass
+            ``"auto"`` to let matplotlib stretch to the axes box.
         save_path: if given, save the figure as both .png and .pdf
             (the extension of ``save_path`` is ignored).
 
@@ -228,6 +240,8 @@ def sensitivity_tiw(
         Karoly PJ et al., Brain 2017; 140: 2169 (Fig 6). Karoly 2019.
     """
     import matplotlib.pyplot as plt
+
+    from .sensitivity_tiw import monotone_upper_envelope
 
     # Normalise to a list of curves.
     try:
@@ -261,9 +275,27 @@ def sensitivity_tiw(
         )
         if lab:
             lab = lab[0].upper() + lab[1:]
+        # Monotone upper envelope, anchored at (0, 0) and (1, 1) so the
+        # frontier spans the full square. Drawn as a steps-post staircase:
+        # "best sensitivity achievable at TiW <= x" holds flat until the
+        # next operating point, so every point on the drawn line equals
+        # the operating-point read-off and the target-budget marker can
+        # never float off it (drawing it as a slanted polyline between
+        # sparse points would overshoot the marker just past the budget).
+        env_t, env_s = monotone_upper_envelope(
+            np.asarray(c.tiw), np.asarray(c.sensitivity)
+        )
+        if env_t.size:
+            if env_t[0] > 0:
+                env_t = np.concatenate([[0.0], env_t])
+                env_s = np.concatenate([[0.0], env_s])
+            if env_t[-1] < 1:
+                env_t = np.concatenate([env_t, [1.0]])
+                env_s = np.concatenate([env_s, [env_s[-1]]])
         (line,) = ax.plot(
-            np.asarray(c.tiw) * scale,
-            np.asarray(c.sensitivity) * scale,
+            env_t * scale,
+            env_s * scale,
+            drawstyle="steps-post",
             marker="o",
             markersize=3,
             linewidth=1.6,
@@ -285,7 +317,9 @@ def sensitivity_tiw(
     ax.set_ylabel(f"Sensitivity ({unit})")
     ax.set_xlim(0, scale * 1.02)
     ax.set_ylim(0, scale * 1.02)
-    ax.set_aspect("equal", adjustable="box")
+    # Square by default (both axes span the same 0-100 % range); callers
+    # can pass aspect="auto" to fill a non-square axes box.
+    ax.set_aspect(aspect, adjustable="box")
     # Legend in the free upper-left wedge (curves live in the lower-right
     # triangle above the diagonal, so the upper-left is clear of data).
     ax.legend(loc="upper left", fontsize=8, framealpha=0.9)
