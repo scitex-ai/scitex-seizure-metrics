@@ -143,6 +143,75 @@ def test_plot_reliability_diagram():
     assert fig is not None
 
 
+def test_plot_sensitivity_tiw_axis_labels():
+    # Arrange
+    from scitex_seizure_metrics import sensitivity_tiw
+
+    rng = np.random.default_rng(0)
+    times = np.arange(0, 24 * 3600.0, 60.0)
+    seizures = np.linspace(2 * 3600.0, 22 * 3600.0, 8)
+    scores = 0.05 + 0.05 * rng.random(times.size)
+    for sz in seizures:
+        m = (times >= sz - 600) & (times < sz)
+        scores[m] = 0.9
+    pol = AlarmPolicy(
+        sph_seconds=0, sop_seconds=600, cadence_seconds=60, refractory_seconds=600
+    )
+    curve = sensitivity_tiw.sensitivity_tiw_curve(
+        scores, pol, seizure_times=seizures, times=times
+    )
+    # Act
+    fig, ax = plots.sensitivity_tiw([curve])
+    fig.savefig(f"{PLOT_DIR}/sensitivity_tiw.png", dpi=110, bbox_inches="tight")
+    plt.close(fig)
+    # Assert
+    assert "time-in-warning" in ax.get_xlabel().lower()
+
+
+def test_plot_sensitivity_tiw_y_is_sensitivity():
+    # Arrange
+    from scitex_seizure_metrics import sensitivity_tiw
+
+    rng = np.random.default_rng(0)
+    times = np.arange(0, 24 * 3600.0, 60.0)
+    seizures = np.linspace(2 * 3600.0, 22 * 3600.0, 8)
+    scores = 0.05 + 0.05 * rng.random(times.size)
+    for sz in seizures:
+        scores[(times >= sz - 600) & (times < sz)] = 0.9
+    pol = AlarmPolicy(
+        sph_seconds=0, sop_seconds=600, cadence_seconds=60, refractory_seconds=600
+    )
+    curve = sensitivity_tiw.sensitivity_tiw_curve(
+        scores, pol, seizure_times=seizures, times=times
+    )
+    # Act
+    fig, ax = plots.sensitivity_tiw([curve])
+    plt.close(fig)
+    # Assert
+    assert "sensitivity" in ax.get_ylabel().lower()
+
+
+def test_plot_sensitivity_tiw_single_curve_accepted():
+    # Arrange
+    from scitex_seizure_metrics import sensitivity_tiw
+
+    rng = np.random.default_rng(0)
+    times = np.arange(0, 12 * 3600.0, 60.0)
+    seizures = np.linspace(2 * 3600.0, 10 * 3600.0, 4)
+    scores = rng.random(times.size)
+    pol = AlarmPolicy(
+        sph_seconds=0, sop_seconds=600, cadence_seconds=60, refractory_seconds=600
+    )
+    curve = sensitivity_tiw.sensitivity_tiw_curve(
+        scores, pol, seizure_times=seizures, times=times
+    )
+    # Act — pass a bare curve (not a list).
+    fig, ax = plots.sensitivity_tiw(curve)
+    plt.close(fig)
+    # Assert
+    assert fig is not None
+
+
 def test_plot_metric_correlation_heatmap():
     # Arrange
     rng = np.random.default_rng(0)

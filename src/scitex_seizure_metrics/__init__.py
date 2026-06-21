@@ -9,8 +9,10 @@ Public API:
 - forecasting.sweep_policies(proba, times, seizures, policies, ...)
 - forecasting.bootstrap_ci(values, n_boot, ci, rng_seed)
 - bridge.sample_to_alarm(...) / bridge.alarm_to_sample(...)
+- sensitivity_tiw.sensitivity_tiw_curve(scores, policy, labels|seizure_times, ...) — empirical sensitivity vs time-in-warning (Karoly 2017 Fig 6)
+- sensitivity_tiw.{chance_sensitivity, binomial_above_chance, surrogate_above_chance}
 - surrogates.{poisson, periodic, persistence} (registered)
-- plots.{sensitivity_vs_fp_per_hour, sample_vs_alarm_scatter, cadence_ablation, ioc_vs_surrogate, metric_correlation_heatmap}
+- plots.{sensitivity_vs_fp_per_hour, sensitivity_tiw, sample_vs_alarm_scatter, cadence_ablation, ioc_vs_surrogate, metric_correlation_heatmap}
 
 Data classes:
 
@@ -37,6 +39,7 @@ from . import (
     papers,
     plots,
     report,
+    sensitivity_tiw,
     surrogates,
 )
 from .policy import AlarmPolicy
@@ -52,6 +55,7 @@ __all__ = [
     "papers",
     "plots",
     "report",
+    "sensitivity_tiw",
     "surrogates",
     "AlarmPolicy",
     "MetricsReport",

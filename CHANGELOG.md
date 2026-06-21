@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`scitex_seizure_metrics.sensitivity_tiw`** — empirical sensitivity-vs-time-in-warning trade-off (the field-standard forecasting view; Karoly 2017 *Brain* 140:2169 Fig 6 / Karoly 2019), the empirical complement to the analytic `bridge`:
+  - `sensitivity_tiw_curve(scores, policy, labels=… | seizure_times=…, …)` — sweeps the decision threshold and returns an ordered (threshold, time-in-warning, sensitivity) curve plus summary scalars: `improvement_over_chance` (AUC-like area above the chance diagonal), `sensitivity_at_target_tiw`, `tiw_at_target_sensitivity`. Time-in-warning is the time-weighted fraction of windows above threshold; sensitivity is SOP-aware (seizure caught iff ≥1 warning covers the pre-ictal window).
+  - `chance_sensitivity(tiw)` — the chance diagonal (a time-matched random alarm catches a fraction `tiw` of seizures in expectation).
+  - `binomial_above_chance(...)` — exact one-sided binomial test of sensitivity vs chance at an operating point, with a Wilson interval.
+  - `surrogate_above_chance(...)` — circular time-shift permutation test (holds time-in-warning fixed while breaking seizure phase-locking).
+  - `SensitivityTiWCurve` / `TiWSignificance` result containers.
+- **`scitex_seizure_metrics.plots.sensitivity_tiw`** — the Karoly 2017 Fig 6 plotter: sensitivity (%) vs time-in-warning (%), one curve per subject, overlaying the chance diagonal with optional operating-point markers; optional `save_path` writes png + pdf.
+- **`docs/math/sensitivity_tiw.md`** — definitions, the chance-diagonal derivation, the two significance tests, and a worked example.
+- `scipy` added as an explicit runtime dependency (binomial test + Wilson interval).
+
 ## [0.1.1] - 2026-05-11
 
 ### Changed

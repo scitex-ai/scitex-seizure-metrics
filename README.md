@@ -221,6 +221,42 @@ print(bnd.alarm_sensitivity_upper, bnd.fp_per_hour_upper)
 </details>
 
 <details>
+<summary><b><code>scitex_seizure_metrics.sensitivity_tiw</code></b> — empirical sensitivity vs time-in-warning trade-off (Karoly 2017 Fig 6)</summary>
+
+The *empirical* complement to the analytic `bridge`: sweep the decision
+threshold and trace seizure-level sensitivity against time-in-warning,
+the field-standard forecasting view. Chance is the diagonal
+(sensitivity == time-in-warning); a forecaster carries signal only above
+it.
+
+```python
+from scitex_seizure_metrics import AlarmPolicy, plots, sensitivity_tiw
+
+policy = AlarmPolicy(sph_seconds=0, sop_seconds=600,
+                     cadence_seconds=60, refractory_seconds=600)
+
+curve = sensitivity_tiw.sensitivity_tiw_curve(
+    scores, policy, seizure_times=onsets, times=times, target_tiw=0.20,
+)
+print(curve.improvement_over_chance,        # AUC-like area above the diagonal
+      curve.sensitivity_at_target_tiw,      # sensitivity at 20 % time-in-warning
+      curve.tiw_at_target_sensitivity)      # time-in-warning at 75 % sensitivity
+
+# Is the operating point above a time-matched coin?
+sig = sensitivity_tiw.surrogate_above_chance(
+    scores, policy, threshold=0.5, seizure_times=onsets, times=times,
+)
+print(sig.p_value, sig.ci_low, sig.ci_high)
+
+plots.sensitivity_tiw([curve], save_path="fig_sens_tiw")  # png + pdf
+```
+
+See [`docs/math/sensitivity_tiw.md`](docs/math/sensitivity_tiw.md) for the
+chance-diagonal derivation and a worked example.
+
+</details>
+
+<details>
 <summary><b><code>scitex_seizure_metrics.papers</code></b> — paper-replica shims (Karoly 2017, Maturana 2020, Kuhlmann 2018, Andrade 2024)</summary>
 
 ```python
@@ -256,6 +292,7 @@ plots.reliability_diagram(cal)
 ```python
 from scitex_seizure_metrics import plots
 plots.sensitivity_vs_fp_per_hour(sweep_df)        # operating curve
+plots.sensitivity_tiw([curve])                    # sensitivity vs time-in-warning (Karoly 2017 Fig 6)
 plots.ioc_vs_surrogate(sweep_df)                  # model vs chance
 plots.cadence_ablation(policy_sweep_df)           # FP/hr vs cadence
 plots.sample_vs_alarm_scatter(per_patient_df)     # the Andrade 2024 figure

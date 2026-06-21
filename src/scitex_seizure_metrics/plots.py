@@ -4,14 +4,19 @@ These plots make the sample-vs-alarm gap (Andrade 2024), threshold
 sensitivity, cadence sensitivity, and IoC vs surrogate transparent.
 All return (fig, ax); none save to disk — that's the caller's job.
 """
+
 from __future__ import annotations
 
 import numpy as np
 
 
-def sensitivity_vs_fp_per_hour(sweep_df, *, ax=None,
-                                acceptable_fp_per_hour: float | None = 0.15,
-                                wearable_fp_per_hour: float | None = 0.042):
+def sensitivity_vs_fp_per_hour(
+    sweep_df,
+    *,
+    ax=None,
+    acceptable_fp_per_hour: float | None = 0.15,
+    wearable_fp_per_hour: float | None = 0.042,
+):
     """Operating-curve plot from forecasting.sweep_thresholds output.
 
     Plots sensitivity (y) vs FP/hr (x). Optional reference lines for
@@ -22,14 +27,23 @@ def sensitivity_vs_fp_per_hour(sweep_df, *, ax=None,
     if ax is None:
         _, ax = plt.subplots(figsize=(5, 4))
     df = sweep_df.sort_values("fp_per_hour")
-    ax.plot(df["fp_per_hour"], df["sensitivity"],
-            marker="o", linestyle="-", label="model")
+    ax.plot(
+        df["fp_per_hour"], df["sensitivity"], marker="o", linestyle="-", label="model"
+    )
     if acceptable_fp_per_hour is not None:
-        ax.axvline(acceptable_fp_per_hour, color="grey", linestyle="--",
-                   label=f"Mormann ({acceptable_fp_per_hour:g}/h)")
+        ax.axvline(
+            acceptable_fp_per_hour,
+            color="grey",
+            linestyle="--",
+            label=f"Mormann ({acceptable_fp_per_hour:g}/h)",
+        )
     if wearable_fp_per_hour is not None:
-        ax.axvline(wearable_fp_per_hour, color="black", linestyle=":",
-                   label=f"wearable ({wearable_fp_per_hour:g}/h)")
+        ax.axvline(
+            wearable_fp_per_hour,
+            color="black",
+            linestyle=":",
+            label=f"wearable ({wearable_fp_per_hour:g}/h)",
+        )
     ax.set_xlabel("FP per hour (interictal)")
     ax.set_ylabel("alarm-based sensitivity")
     ax.set_xscale("symlog", linthresh=0.01)
@@ -38,9 +52,9 @@ def sensitivity_vs_fp_per_hour(sweep_df, *, ax=None,
     return ax.figure, ax
 
 
-def sample_vs_alarm_scatter(per_patient_df, *, ax=None,
-                            x_metric: str = "roc_auc",
-                            y_metric: str = "sensitivity"):
+def sample_vs_alarm_scatter(
+    per_patient_df, *, ax=None, x_metric: str = "roc_auc", y_metric: str = "sensitivity"
+):
     """Reproduce the Andrade 2024 finding: per-patient sample-based AUC
     vs alarm-based sensitivity. Identity line shows the (false) hope of
     direct correspondence.
@@ -49,11 +63,9 @@ def sample_vs_alarm_scatter(per_patient_df, *, ax=None,
 
     if ax is None:
         _, ax = plt.subplots(figsize=(5, 4.5))
-    ax.scatter(per_patient_df[x_metric], per_patient_df[y_metric],
-               s=40, alpha=0.85)
+    ax.scatter(per_patient_df[x_metric], per_patient_df[y_metric], s=40, alpha=0.85)
     ax.plot([0, 1], [0, 1], color="grey", linestyle=":", label="identity")
-    ax.axhline(0.5, color="red", linestyle="--", alpha=0.5,
-               label="chance sensitivity")
+    ax.axhline(0.5, color="red", linestyle="--", alpha=0.5, label="chance sensitivity")
     ax.set_xlabel(f"sample-based {x_metric}")
     ax.set_ylabel(f"alarm-based {y_metric}")
     ax.set_xlim(0, 1.05)
@@ -62,8 +74,14 @@ def sample_vs_alarm_scatter(per_patient_df, *, ax=None,
     return ax.figure, ax
 
 
-def cadence_ablation(sweep_df, *, ax=None, x: str = "cadence_s",
-                     y: str = "fp_per_hour", logx: bool = True):
+def cadence_ablation(
+    sweep_df,
+    *,
+    ax=None,
+    x: str = "cadence_s",
+    y: str = "fp_per_hour",
+    logx: bool = True,
+):
     """How does FP/hr (or any metric) move as we change the cadence?
     Input: forecasting.sweep_policies output sorted by cadence.
     """
@@ -89,14 +107,22 @@ def ioc_vs_surrogate(sweep_df, *, ax=None):
     if ax is None:
         _, ax = plt.subplots(figsize=(5, 4))
     df = sweep_df.sort_values("threshold")
-    ax.plot(df["threshold"], df["sensitivity"], label="model sens",
-            marker="o")
-    ax.plot(df["threshold"], df["surrogate_sensitivity"],
-            label="surrogate sens", linestyle="--", marker="x")
-    ax.fill_between(df["threshold"], df["surrogate_sensitivity"],
-                    df["sensitivity"], where=df["sensitivity"]
-                    > df["surrogate_sensitivity"], alpha=0.2,
-                    label="IoC > 0")
+    ax.plot(df["threshold"], df["sensitivity"], label="model sens", marker="o")
+    ax.plot(
+        df["threshold"],
+        df["surrogate_sensitivity"],
+        label="surrogate sens",
+        linestyle="--",
+        marker="x",
+    )
+    ax.fill_between(
+        df["threshold"],
+        df["surrogate_sensitivity"],
+        df["sensitivity"],
+        where=df["sensitivity"] > df["surrogate_sensitivity"],
+        alpha=0.2,
+        label="IoC > 0",
+    )
     ax.set_xlabel("alarm threshold")
     ax.set_ylabel("sensitivity")
     ax.legend(fontsize=8)
@@ -104,8 +130,7 @@ def ioc_vs_surrogate(sweep_df, *, ax=None):
     return ax.figure, ax
 
 
-def reliability_diagram(cal_report, *, ax=None,
-                        title: str = "Reliability diagram"):
+def reliability_diagram(cal_report, *, ax=None, title: str = "Reliability diagram"):
     """Plot a reliability diagram from a CalibrationReport.
 
     The dashed identity line represents perfect calibration. Bin counts
@@ -118,28 +143,160 @@ def reliability_diagram(cal_report, *, ax=None,
     cnts = cal_report.bin_counts
     sizes = 30 + 200 * (cnts / max(1, cnts.max()))
     ax.plot([0, 1], [0, 1], color="grey", linestyle="--", label="ideal")
-    ax.plot(cal_report.bin_centers, cal_report.bin_observed,
-            color="C0", linestyle="-", marker="o", markersize=0,
-            label="model")
-    ax.scatter(cal_report.bin_centers, cal_report.bin_observed,
-               s=sizes, color="C0", edgecolor="white", zorder=3)
+    ax.plot(
+        cal_report.bin_centers,
+        cal_report.bin_observed,
+        color="C0",
+        linestyle="-",
+        marker="o",
+        markersize=0,
+        label="model",
+    )
+    ax.scatter(
+        cal_report.bin_centers,
+        cal_report.bin_observed,
+        s=sizes,
+        color="C0",
+        edgecolor="white",
+        zorder=3,
+    )
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.set_xlabel("predicted probability")
     ax.set_ylabel("observed positive rate")
     ax.set_title(title)
     ece = cal_report.expected_calibration_error
-    ax.text(0.05, 0.95, f"ECE={ece:.3f}\nBrier={cal_report.brier:.3f}\n"
-                        f"Rel={cal_report.reliability:.3f}, "
-                        f"Res={cal_report.resolution:.3f}",
-            transform=ax.transAxes, va="top", fontsize=9,
-            bbox=dict(boxstyle="round", facecolor="white", alpha=0.85))
+    ax.text(
+        0.05,
+        0.95,
+        f"ECE={ece:.3f}\nBrier={cal_report.brier:.3f}\n"
+        f"Rel={cal_report.reliability:.3f}, "
+        f"Res={cal_report.resolution:.3f}",
+        transform=ax.transAxes,
+        va="top",
+        fontsize=9,
+        bbox=dict(boxstyle="round", facecolor="white", alpha=0.85),
+    )
     ax.legend(loc="lower right", fontsize=8)
     return ax.figure, ax
 
 
-def metric_correlation_heatmap(per_patient_df, *, ax=None,
-                                metrics=None, method: str = "spearman"):
+def _save_png_pdf(fig, save_path: str) -> None:
+    """Save a figure as both .png and .pdf next to ``save_path``."""
+    import os
+
+    root, _ = os.path.splitext(save_path)
+    fig.savefig(root + ".png", dpi=200, bbox_inches="tight")
+    fig.savefig(root + ".pdf", bbox_inches="tight")
+
+
+def sensitivity_tiw(
+    curves,
+    *,
+    ax=None,
+    percent: bool = True,
+    show_chance: bool = True,
+    mark_operating_point: bool = True,
+    labels=None,
+    save_path: str | None = None,
+):
+    """Sensitivity vs time-in-warning trade-off (Karoly 2017 Fig 6).
+
+    The field-standard forecasting view: each subject's empirical
+    operating curve plotted as sensitivity (y) against time-in-warning
+    (x), overlaid on the chance diagonal (sensitivity == TiW). A curve
+    above the diagonal carries signal beyond a time-matched coin.
+
+    Args:
+        curves: a single ``SensitivityTiWCurve`` or an iterable of them
+            (one line per subject).
+        ax: existing axis to draw on; a new figure is made if None.
+        percent: show axes as percentages (0-100) instead of fractions.
+        show_chance: overlay the chance diagonal.
+        mark_operating_point: mark each curve's sensitivity-at-target-TiW
+            operating point.
+        labels: optional list of legend labels (one per curve); falls
+            back to each curve's ``.name`` (capital-first).
+        save_path: if given, save the figure as both .png and .pdf
+            (the extension of ``save_path`` is ignored).
+
+    Returns:
+        (fig, ax). Following package convention, nothing is written to
+        disk unless ``save_path`` is supplied.
+
+    References:
+        Karoly PJ et al., Brain 2017; 140: 2169 (Fig 6). Karoly 2019.
+    """
+    import matplotlib.pyplot as plt
+
+    # Normalise to a list of curves.
+    try:
+        curve_list = list(curves)
+        if not curve_list or hasattr(curves, "tiw"):
+            raise TypeError
+    except TypeError:
+        curve_list = [curves]
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(5, 5))
+    scale = 100.0 if percent else 1.0
+    unit = "%" if percent else "fraction"
+
+    if show_chance:
+        ax.plot(
+            [0, scale],
+            [0, scale],
+            color="grey",
+            linestyle="--",
+            linewidth=1.2,
+            label="Chance (time-matched)",
+            zorder=1,
+        )
+
+    for i, c in enumerate(curve_list):
+        lab = (
+            labels[i]
+            if labels is not None and i < len(labels)
+            else (c.name or f"Subject {i + 1}")
+        )
+        if lab:
+            lab = lab[0].upper() + lab[1:]
+        (line,) = ax.plot(
+            np.asarray(c.tiw) * scale,
+            np.asarray(c.sensitivity) * scale,
+            marker="o",
+            markersize=3,
+            linewidth=1.6,
+            label=lab,
+            zorder=2,
+        )
+        if mark_operating_point and np.isfinite(c.sensitivity_at_target_tiw):
+            ax.scatter(
+                [c.target_tiw * scale],
+                [c.sensitivity_at_target_tiw * scale],
+                s=70,
+                facecolor="none",
+                edgecolor=line.get_color(),
+                linewidths=1.8,
+                zorder=3,
+            )
+
+    ax.set_xlabel(f"Time-in-warning ({unit})")
+    ax.set_ylabel(f"Sensitivity ({unit})")
+    ax.set_xlim(0, scale * 1.02)
+    ax.set_ylim(0, scale * 1.02)
+    ax.set_aspect("equal", adjustable="box")
+    # Legend in the free upper-left wedge (curves live in the lower-right
+    # triangle above the diagonal, so the upper-left is clear of data).
+    ax.legend(loc="upper left", fontsize=8, framealpha=0.9)
+    if save_path is not None:
+        _save_png_pdf(ax.figure, save_path)
+    return ax.figure, ax
+
+
+def metric_correlation_heatmap(
+    per_patient_df, *, ax=None, metrics=None, method: str = "spearman"
+):
     """Heatmap of metric-to-metric correlations across patients.
     Surfaces redundancy ("this metric tells us nothing new") and the
     sample-vs-alarm divergence axis.
@@ -147,9 +304,18 @@ def metric_correlation_heatmap(per_patient_df, *, ax=None,
     import matplotlib.pyplot as plt
 
     if metrics is None:
-        candidates = ["roc_auc", "pr_auc", "balanced_accuracy", "mcc",
-                      "sensitivity", "precision", "f1", "fp_per_hour",
-                      "ioc", "time_in_warning_frac"]
+        candidates = [
+            "roc_auc",
+            "pr_auc",
+            "balanced_accuracy",
+            "mcc",
+            "sensitivity",
+            "precision",
+            "f1",
+            "fp_per_hour",
+            "ioc",
+            "time_in_warning_frac",
+        ]
         metrics = [m for m in candidates if m in per_patient_df.columns]
     sub = per_patient_df[metrics].select_dtypes(include="number")
     corr = sub.corr(method=method)
@@ -163,7 +329,13 @@ def metric_correlation_heatmap(per_patient_df, *, ax=None,
     ax.figure.colorbar(im, ax=ax, label=f"{method} ρ")
     for i in range(len(metrics)):
         for j in range(len(metrics)):
-            ax.text(j, i, f"{corr.values[i, j]:.2f}",
-                    ha="center", va="center", fontsize=7,
-                    color="white" if abs(corr.values[i, j]) > 0.5 else "black")
+            ax.text(
+                j,
+                i,
+                f"{corr.values[i, j]:.2f}",
+                ha="center",
+                va="center",
+                fontsize=7,
+                color="white" if abs(corr.values[i, j]) > 0.5 else "black",
+            )
     return ax.figure, ax
