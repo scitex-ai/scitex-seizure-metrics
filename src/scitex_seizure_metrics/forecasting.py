@@ -21,7 +21,7 @@ from typing import Iterable
 
 import numpy as np
 
-from . import _alarm
+from . import _alarm, _classification
 from . import surrogates as _surrogates
 from .policy import AlarmPolicy
 from .report import MetricsReport
@@ -108,6 +108,28 @@ def evaluate(
         surrogate_sens.append(sc_s.sum() / max(1, seizures.size))
     surro_mean = float(np.mean(surrogate_sens)) if surrogate_sens else 0.0
 
+    # Forecasting-regime classification metrics. TN is defined on
+    # interictal SOP-length "prediction opportunities" — see
+    # _classification for the full convention. The interictal denominator
+    # (Mormann-tradition, seizure ± SOP windows removed) is reused here so
+    # specificity/NPV share the FP/hr time basis.
+    clf_interictal = _alarm.interictal_seconds(
+        total_recording_time, seizures, policy.sop_seconds, policy.sph_seconds
+    )
+    clf = _classification.alarm_classification(
+        n_tp=tp,
+        n_fp=fp,
+        n_seizures=int(seizures.size),
+        interictal_seconds=clf_interictal,
+        sop_seconds=policy.sop_seconds,
+    )
+
+    # Observed lead times (distinct from the SPH constraint).
+    lead_times = _classification.observed_lead_times(
+        alarms, seizures, policy.sph_seconds, policy.sop_seconds
+    )
+    lead_summary = _classification.lead_time_summary(lead_times)
+
     rep = MetricsReport(
         name=name,
         regime="forecasting",
@@ -122,10 +144,23 @@ def evaluate(
         time_in_warning_frac=tiw_frac,
         ioc=sens - surro_mean,
         surrogate_sensitivity=surro_mean,
+        specificity=clf.specificity,
+        ppv=clf.ppv,
+        npv=clf.npv,
+        forecasting_f1=clf.f1,
+        n_tn=clf.tn,
+        n_opportunities=clf.n_opportunities,
+        lead_time_mean=lead_summary["lead_time_mean"],
+        lead_time_median=lead_summary["lead_time_median"],
         extras={
             "policy": policy.describe(),
             "interictal_seconds": denom_seconds,
             "n_alarms": int(alarms.size),
+            "n_fn": clf.fn,
+            "lead_times_seconds": lead_times.tolist(),
+            "lead_time_min": lead_summary["lead_time_min"],
+            "lead_time_max": lead_summary["lead_time_max"],
+            "n_caught": lead_summary["n_caught"],
         },
     )
     return rep

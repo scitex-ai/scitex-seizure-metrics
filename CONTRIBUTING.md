@@ -24,8 +24,8 @@ See [CLA.md](CLA.md) for full details.
 ## Development Setup
 
 ```bash
-git clone git@github.com:ywatanabe1989/scitex_seizure_metrics.git
-cd scitex_seizure_metrics
+git clone git@github.com:ywatanabe1989/scitex-seizure-metrics.git
+cd scitex-seizure-metrics
 pip install -e ".[dev]"
 ```
 
