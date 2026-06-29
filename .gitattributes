@@ -1,2 +1,6 @@
-# Sphinx-generated docs bundle — exclude from GitHub language stats.
+# Sphinx-generated docs/HTML — exclude from GitHub Linguist language stats.
+# Refs: ywatanabe1989/scitex-dev#168 (operator-direct)
+docs/_build/** linguist-generated
+docs/build/** linguist-generated
+**/_sphinx_html/** linguist-documentation
 src/*/_sphinx_html/** linguist-generated
