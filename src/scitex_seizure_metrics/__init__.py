@@ -17,7 +17,7 @@ Public API:
 Data classes:
 
 - AlarmPolicy(sph_seconds, sop_seconds, cadence_seconds, refractory_seconds, alarm_threshold, merge_consecutive, fp_denominator)
-- MetricsReport (frozen single-row report; .to_frame(), .to_json())
+- MetricsReport (frozen single-row report; .to_frame(), .to_json()). The forecasting regime additionally fills specificity / ppv (alarm precision) / npv / forecasting_f1 on the alarm-vs-interictal-opportunity confusion basis, plus n_tn / n_opportunities and observed lead_time_mean / lead_time_median (per-seizure lead_times_seconds in .extras).
 """
 
 from __future__ import annotations
