@@ -93,8 +93,13 @@ the README, the docstrings, and the cited papers.
 ## Installation
 
 ```bash
-pip install scitex-seizure-metrics
+pip install scitex-seizure-metrics          # runtime only
+pip install "scitex-seizure-metrics[plots]" # + matplotlib for the plots submodule
+pip install "scitex-seizure-metrics[all]"   # plots + docs + dev toolchain
 ```
+
+Python ≥ 3.10 (CI tests 3.11 / 3.12 / 3.13). Through the SciTeX umbrella:
+`pip install "scitex[seizure-metrics]"` → `scitex.seizure_metrics.*`.
 
 ## Demo
 
@@ -146,6 +151,48 @@ print(rep.sensitivity, rep.fp_per_hour, rep.ioc, rep.time_in_warning_frac)
 ```
 
 See `examples/01_detection_quick_start.ipynb`, `examples/02_forecasting_quick_start.ipynb`, and the other notebooks under `examples/` for end-to-end workflows.
+
+### Forecasting classification metrics + lead time (v0.2.0)
+
+The alarm regime reports the full confusion matrix and the warning time
+it actually delivered. **TP** = caught seizures, **FN** = uncaught,
+**FP** = alarms catching nothing; **TN** = interictal SOP-length
+"prediction opportunities" with no false alarm
+(`n_opportunities = floor(interictal_seconds / SOP)`,
+`TN = max(0, n_opportunities − FP)` — the Snyder/Schelter/Mormann
+tradition; see [`docs/math/alarm_confusion_matrix.md`](docs/math/alarm_confusion_matrix.md)
+and [ADR-0001](docs/adr/0001-true-negative-for-alarm-based-seizure-warning.md)
+for why "what is a true negative" is a documented convention).
+
+```python
+import numpy as np
+from scitex_seizure_metrics import AlarmPolicy, forecasting
+
+# 3 seizures; 3 alarms, the first two of which catch a seizure
+seizures = np.array([3600.0, 7200.0, 18000.0])
+alarms   = np.array([3000.0, 6900.0, 12000.0])
+policy = AlarmPolicy(sph_seconds=300, sop_seconds=600,
+                     cadence_seconds=60, refractory_seconds=600,
+                     fp_denominator="interictal")
+
+rep = forecasting.evaluate(alarms, seizures, policy,
+                           total_recording_time=24 * 3600, n_surrogate=50)
+
+print(rep.n_tp, rep.n_fp, rep.extras["n_fn"], rep.n_tn, rep.n_opportunities)
+# 2 1 1 135 136
+print(round(rep.sensitivity, 3), round(rep.specificity, 3),
+      round(rep.ppv, 3), round(rep.npv, 3), round(rep.forecasting_f1, 3))
+# 0.667 0.993 0.667 0.993 0.667
+print(rep.lead_time_mean, rep.extras["lead_times_seconds"])
+# 450.0 [600.0, 300.0]   (delivered ≥ the 300 s SPH the policy required)
+```
+
+`specificity` / `npv` scale with the SOP-opportunity TN convention (read
+them with `n_tn` / `n_opportunities`); `ppv` / `forecasting_f1` do not.
+Undefined ratios are `NaN` (fail-loud), never a silent `0`. Observed lead
+time is distinct from the SPH *constraint* — SPH is the minimum required,
+lead time is what the system actually delivered
+(`SPH ≤ lead ≤ SPH + SOP`).
 
 ## Architecture
 

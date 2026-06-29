@@ -5,7 +5,7 @@ description: |
   [WHEN] Use whenever you need to report a seizure-detection or seizure-forecasting method on more than one paper's metric set, audit the sample-vs-alarm regime gap (Andrade 2024), or pin every reproducibility knob (SPH, SOP, cadence, refractory, FP-denominator) with no silent defaults.
   [HOW] `from scitex_seizure_metrics import detection, forecasting, AlarmPolicy` — call `detection.evaluate(y_true, y_proba)` for sample-based, `forecasting.evaluate_stream(proba, times, seizures, AlarmPolicy(...))` for alarm-based, and `bridge.sample_to_alarm(...)` when only one regime was published.
 primary_interface: python
-interfaces: {python: 3, cli: 0, mcp: 0, skills: 2, hook: 0, http: 0}
+interfaces: {python: 4, cli: 0, mcp: 0, skills: 3, hook: 0, http: 0}
 tags: [scitex-seizure-metrics]
 ---
 
@@ -21,6 +21,7 @@ re-running anyone's pipeline.
 * [01_installation.md](01_installation.md) — install scitex_seizure_metrics and its `[plots]` / `[test]` / `[dev]` / `[docs]` / `[all]` extras; umbrella `pip install scitex[scitex_seizure_metrics]`.
 * [02_quick-start.md](02_quick-start.md) — end-to-end recipes for `detection.evaluate`, `forecasting.evaluate_stream` (with required `AlarmPolicy`), threshold + cadence sweeps, `bridge.sample_to_alarm`, and the Andrade 2024 paper-replica.
 * [03_python-api.md](03_python-api.md) — public surface reference: `detection`, `forecasting`, `bridge`, `AlarmPolicy`, paper-replica shims.
+* [04_forecasting-classification.md](04_forecasting-classification.md) — idiomatic v0.2.0 alarm-regime workflow: probabilities → `AlarmPolicy` → `forecasting.evaluate_stream`; choosing SPH/SOP; pinning an operating point by time-in-warning (`sensitivity_tiw`); reading the confusion-matrix scores + lead time; and the surrogate / IoC baseline.
 
 ## Quick reference
 
