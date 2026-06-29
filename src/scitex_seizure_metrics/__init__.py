@@ -9,13 +9,15 @@ Public API:
 - forecasting.sweep_policies(proba, times, seizures, policies, ...)
 - forecasting.bootstrap_ci(values, n_boot, ci, rng_seed)
 - bridge.sample_to_alarm(...) / bridge.alarm_to_sample(...)
+- sensitivity_tiw.sensitivity_tiw_curve(scores, policy, labels|seizure_times, ...) — empirical sensitivity vs time-in-warning (Karoly 2017 Fig 6)
+- sensitivity_tiw.{chance_sensitivity, binomial_above_chance, surrogate_above_chance}
 - surrogates.{poisson, periodic, persistence} (registered)
-- plots.{sensitivity_vs_fp_per_hour, sample_vs_alarm_scatter, cadence_ablation, ioc_vs_surrogate, metric_correlation_heatmap}
+- plots.{sensitivity_vs_fp_per_hour, sensitivity_tiw, sample_vs_alarm_scatter, cadence_ablation, ioc_vs_surrogate, metric_correlation_heatmap}
 
 Data classes:
 
 - AlarmPolicy(sph_seconds, sop_seconds, cadence_seconds, refractory_seconds, alarm_threshold, merge_consecutive, fp_denominator)
-- MetricsReport (frozen single-row report; .to_frame(), .to_json())
+- MetricsReport (frozen single-row report; .to_frame(), .to_json()). The forecasting regime additionally fills specificity / ppv (alarm precision) / npv / forecasting_f1 on the alarm-vs-interictal-opportunity confusion basis, plus n_tn / n_opportunities and observed lead_time_mean / lead_time_median (per-seizure lead_times_seconds in .extras).
 """
 
 from __future__ import annotations
@@ -37,6 +39,7 @@ from . import (
     papers,
     plots,
     report,
+    sensitivity_tiw,
     surrogates,
 )
 from .policy import AlarmPolicy
@@ -52,6 +55,7 @@ __all__ = [
     "papers",
     "plots",
     "report",
+    "sensitivity_tiw",
     "surrogates",
     "AlarmPolicy",
     "MetricsReport",

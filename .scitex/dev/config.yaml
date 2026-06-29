@@ -1,0 +1,16 @@
+# scitex-dev project-type config for scitex-seizure-metrics.
+#
+# Drives which rule families the auditor applies and which package-type
+# capabilities it honours.
+
+project-type:
+  - pip
+
+audit:
+  # Package-type capability knob (scitex-dev auditor). This package is
+  # umbrella-free: its examples legitimately do not use `@stx.session`
+  # (no umbrella `scitex` session surface), so PS-501 / PS-503 do not
+  # apply. The auditor skips them with a visible "declared capability"
+  # notice rather than firing false positives.
+  capabilities:
+    - no-umbrella

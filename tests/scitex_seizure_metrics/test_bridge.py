@@ -75,7 +75,9 @@ def test_sample_to_alarm_chance_bounds_b2_fp_per_hour_upper_equals_pytest_approx
     assert b2.fp_per_hour_upper == pytest.approx(6.0, abs=1e-6)
 
 
-def test_sample_to_alarm_prevalence_reduces_K_eff_high_k_effective_low_k_effective():
+def test_sample_to_alarm_prevalence_does_not_change_K_eff_equals_K():
+    # Each SOP holds K windows by construction, so K_eff = K is
+    # independent of the global prevalence (K_eff soundness fix).
     # Arrange
     high = bridge.sample_to_alarm(
         sample_sensitivity=0.5,
@@ -94,11 +96,11 @@ def test_sample_to_alarm_prevalence_reduces_K_eff_high_k_effective_low_k_effecti
         prevalence=0.05,
     )
     # Act
-    # Assert
-    assert high.K_effective > low.K_effective
+    # Assert — K = ceil(600 / 60) = 10, regardless of prevalence.
+    assert high.K_effective == low.K_effective == 10
 
 
-def test_sample_to_alarm_prevalence_reduces_K_eff_high_alarm_sensitivity_upper_low_alarm_sensitivity_upper():
+def test_sample_to_alarm_prevalence_does_not_change_alarm_sensitivity_upper():
     # Arrange
     high = bridge.sample_to_alarm(
         sample_sensitivity=0.5,
@@ -117,11 +119,36 @@ def test_sample_to_alarm_prevalence_reduces_K_eff_high_alarm_sensitivity_upper_l
         prevalence=0.05,
     )
     # Act
+    # Assert — detection band no longer collapses at low prevalence.
+    assert high.alarm_sensitivity_upper == pytest.approx(low.alarm_sensitivity_upper)
+
+
+def test_sample_to_alarm_longer_sop_widens_detection_band():
+    # SOP now correctly drives K = ceil(SOP / cadence); the old
+    # prevalence-shrink made SOP=15 and SOP=60 degenerate at low π.
+    # Arrange
+    short = bridge.sample_to_alarm(
+        sample_sensitivity=0.5,
+        sample_specificity=0.95,
+        sop_seconds=15,
+        cadence_seconds=15,
+        refractory_seconds=15,
+        prevalence=0.05,
+    )
+    long = bridge.sample_to_alarm(
+        sample_sensitivity=0.5,
+        sample_specificity=0.95,
+        sop_seconds=60,
+        cadence_seconds=15,
+        refractory_seconds=60,
+        prevalence=0.05,
+    )
+    # Act
     # Assert
-    assert high.alarm_sensitivity_upper >= low.alarm_sensitivity_upper
+    assert long.alarm_sensitivity_upper > short.alarm_sensitivity_upper
 
 
-def test_sample_to_alarm_invalid_inputs_raises_valueerror():
+def test_sample_to_alarm_out_of_range_sensitivity_raises_valueerror():
     # Arrange
     # Act
     # Assert
@@ -134,7 +161,7 @@ def test_sample_to_alarm_invalid_inputs_raises_valueerror():
         )
 
 
-def test_sample_to_alarm_invalid_inputs_raises_valueerror():
+def test_sample_to_alarm_nonpositive_sop_raises_valueerror():
     # Arrange
     # Act
     # Assert

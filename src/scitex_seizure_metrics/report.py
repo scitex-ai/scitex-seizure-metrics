@@ -5,6 +5,7 @@ Designed so the same object can be:
 - materialised as a one-row pandas DataFrame for stacking across patients/folds
 - pretty-printed for terminal logs.
 """
+
 from __future__ import annotations
 
 import json
@@ -23,8 +24,8 @@ class MetricsReport:
     """
 
     # Identification
-    name: str = ""                  # e.g. "P03_fold0"
-    regime: str = ""                # "detection" | "forecasting"
+    name: str = ""  # e.g. "P03_fold0"
+    regime: str = ""  # "detection" | "forecasting"
 
     # Detection-style (continuous prediction → ranking metrics)
     roc_auc: float | None = None
@@ -47,8 +48,26 @@ class MetricsReport:
     sph_seconds: float | None = None
     sop_seconds: float | None = None
     time_in_warning_frac: float | None = None
-    ioc: float | None = None        # Improvement over Chance (vs surrogate)
+    ioc: float | None = None  # Improvement over Chance (vs surrogate)
     surrogate_sensitivity: float | None = None
+
+    # Forecasting-regime classification metrics (alarm/opportunity basis;
+    # see _classification.py for the TP/FP/FN/TN convention). specificity
+    # and npv depend on the SOP-length-opportunity TN convention; ppv and
+    # forecasting_f1 do not. n_tn / n_opportunities are carried so the TN
+    # denominator is always visible.
+    specificity: float | None = None
+    ppv: float | None = None  # alarm precision = TP / (TP + FP)
+    npv: float | None = None
+    forecasting_f1: float | None = None
+    n_tn: int | None = None
+    n_opportunities: int | None = None
+
+    # Observed lead/warning time (seconds), distinct from the SPH
+    # constraint: per caught seizure, onset minus the earliest catching
+    # alarm. Per-seizure array lives in extras["lead_times_seconds"].
+    lead_time_mean: float | None = None
+    lead_time_median: float | None = None
 
     # Free-form extras (per-class scores, calibration table, etc.)
     extras: dict[str, Any] = field(default_factory=dict)
@@ -65,8 +84,7 @@ class MetricsReport:
         return json.dumps(self.to_dict(), indent=2, default=str)
 
     def __str__(self) -> str:
-        d = {k: v for k, v in self.to_dict().items()
-             if v not in (None, {}, "")}
+        d = {k: v for k, v in self.to_dict().items() if v not in (None, {}, "")}
         lines = [f"MetricsReport({d.get('name', '?')}, {d.get('regime', '?')})"]
         for k, v in d.items():
             if k in ("name", "regime"):

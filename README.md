@@ -80,6 +80,8 @@ the README, the docstrings, and the cited papers.
 | **Time-in-warning** (TIW, "proportion time in warning") | Fraction of recording time spent inside an active warning window (between alarm onset and refractory end). The natural denominator that pairs with sensitivity in the Proix 2021 operating curve. |
 | **Sensitivity vs proportion-time-in-warning** | Operating curve introduced by Proix 2021. Plotted instead of sensitivity vs FP/hr when alarm refractory periods make per-hour counts misleading. Same x-axis units as Cook 2013's "time-in-warning" reporting. |
 | **Beats chance (alarm)** | Boolean — is the model's IoC above the surrogate distribution at the configured significance level? Andrade 2024's headline: 50/56 patients beat chance under sample-based eval but only 6/46 under alarm-based. |
+| **Specificity / PPV / NPV / F1 (alarm regime)** | Standard confusion-matrix scores on the alarm-vs-prediction-opportunity basis. **TP** = caught seizures, **FN** = uncaught seizures, **FP** = alarms catching nothing; **TN** = interictal SOP-length "prediction opportunities" with no false alarm (`n_opportunities = floor(interictal_seconds / SOP)`, `TN = max(0, n_opportunities − FP)`, Snyder/Schelter/Mormann tradition). So `specificity = TN/(TN+FP)`, `ppv` (alarm precision) `= TP/(TP+FP)`, `npv = TN/(TN+FN)`, `forecasting_f1 = 2·TP/(2·TP+FP+FN)`. `specificity`/`npv` scale with the SOP-opportunity TN convention (`n_tn` / `n_opportunities` are reported alongside so the denominator is visible); `ppv`/`forecasting_f1` do not depend on TN. Undefined ratios are NaN, never a silent 0. |
+| **Observed lead time** | Per caught seizure, onset minus the *earliest* catching alarm (after SPH). Distinct from the SPH *constraint*: SPH is the minimum required gap, lead time is what the system actually delivered (always SPH ≤ lead ≤ SPH + SOP). `lead_time_mean` / `lead_time_median` summarise the distribution; the per-seizure array is in `extras["lead_times_seconds"]`. |
 
 </details>
 
@@ -91,8 +93,13 @@ the README, the docstrings, and the cited papers.
 ## Installation
 
 ```bash
-pip install scitex-seizure-metrics
+pip install scitex-seizure-metrics          # runtime only
+pip install "scitex-seizure-metrics[plots]" # + matplotlib for the plots submodule
+pip install "scitex-seizure-metrics[all]"   # plots + docs + dev toolchain
 ```
+
+Python ≥ 3.10 (CI tests 3.11 / 3.12 / 3.13). Through the SciTeX umbrella:
+`pip install "scitex[seizure-metrics]"` → `scitex.seizure_metrics.*`.
 
 ## Demo
 
@@ -101,13 +108,16 @@ from scitex_seizure_metrics import detection, forecasting, AlarmPolicy
 
 # Per-window detection metrics (sensitivity, false-positives/hour, ...)
 m = detection.evaluate(y_true=labels, y_pred=preds, fs=256)
-print(m["sensitivity"], m["fp_per_hour"])
+print(m.sensitivity, m.fp_per_hour)
 
 # Forecasting metrics (Improvement-over-chance, AUROC, alarm count)
 f = forecasting.evaluate(
-    seizure_times=onsets, alarm_times=alarms, policy=AlarmPolicy.STANDARD
+    alarm_times=alarms, seizure_times=onsets,
+    policy=AlarmPolicy(sph_seconds=300, sop_seconds=600,
+                       cadence_seconds=60, refractory_seconds=600),
+    total_recording_time=24 * 3600,
 )
-print(f["ioc"], f["auroc"])
+print(f.ioc, f.roc_auc)
 ```
 
 ```mermaid
@@ -140,7 +150,49 @@ rep = forecasting.evaluate_stream(
 print(rep.sensitivity, rep.fp_per_hour, rep.ioc, rep.time_in_warning_frac)
 ```
 
-See `examples/quick_start_detection.py` and `examples/quick_start_forecasting.py`.
+See `examples/01_detection_quick_start.ipynb`, `examples/02_forecasting_quick_start.ipynb`, and the other notebooks under `examples/` for end-to-end workflows.
+
+### Forecasting classification metrics + lead time (v0.2.0)
+
+The alarm regime reports the full confusion matrix and the warning time
+it actually delivered. **TP** = caught seizures, **FN** = uncaught,
+**FP** = alarms catching nothing; **TN** = interictal SOP-length
+"prediction opportunities" with no false alarm
+(`n_opportunities = floor(interictal_seconds / SOP)`,
+`TN = max(0, n_opportunities − FP)` — the Snyder/Schelter/Mormann
+tradition; see [`docs/math/alarm_confusion_matrix.md`](docs/math/alarm_confusion_matrix.md)
+and [ADR-0001](docs/adr/0001-true-negative-for-alarm-based-seizure-warning.md)
+for why "what is a true negative" is a documented convention).
+
+```python
+import numpy as np
+from scitex_seizure_metrics import AlarmPolicy, forecasting
+
+# 3 seizures; 3 alarms, the first two of which catch a seizure
+seizures = np.array([3600.0, 7200.0, 18000.0])
+alarms   = np.array([3000.0, 6900.0, 12000.0])
+policy = AlarmPolicy(sph_seconds=300, sop_seconds=600,
+                     cadence_seconds=60, refractory_seconds=600,
+                     fp_denominator="interictal")
+
+rep = forecasting.evaluate(alarms, seizures, policy,
+                           total_recording_time=24 * 3600, n_surrogate=50)
+
+print(rep.n_tp, rep.n_fp, rep.extras["n_fn"], rep.n_tn, rep.n_opportunities)
+# 2 1 1 135 136
+print(round(rep.sensitivity, 3), round(rep.specificity, 3),
+      round(rep.ppv, 3), round(rep.npv, 3), round(rep.forecasting_f1, 3))
+# 0.667 0.993 0.667 0.993 0.667
+print(rep.lead_time_mean, rep.extras["lead_times_seconds"])
+# 450.0 [600.0, 300.0]   (delivered ≥ the 300 s SPH the policy required)
+```
+
+`specificity` / `npv` scale with the SOP-opportunity TN convention (read
+them with `n_tn` / `n_opportunities`); `ppv` / `forecasting_f1` do not.
+Undefined ratios are `NaN` (fail-loud), never a silent `0`. Observed lead
+time is distinct from the SPH *constraint* — SPH is the minimum required,
+lead time is what the system actually delivered
+(`SPH ≤ lead ≤ SPH + SOP`).
 
 ## Architecture
 
@@ -180,6 +232,10 @@ rep = forecasting.evaluate_stream(
     total_recording_time=24 * 3600, n_surrogate=1000,
 )
 print(rep.sensitivity, rep.fp_per_hour, rep.ioc, rep.time_in_warning_frac)
+# Alarm-regime confusion metrics + observed lead time
+print(rep.specificity, rep.ppv, rep.npv, rep.forecasting_f1)
+print(rep.lead_time_mean, rep.lead_time_median,
+      rep.extras["lead_times_seconds"])
 
 # Operating curve across thresholds
 df = forecasting.sweep_thresholds(proba, times, seizures, policy)
@@ -214,6 +270,42 @@ bnd = bridge.sample_to_alarm(
 )
 print(bnd.alarm_sensitivity_upper, bnd.fp_per_hour_upper)
 ```
+
+</details>
+
+<details>
+<summary><b><code>scitex_seizure_metrics.sensitivity_tiw</code></b> — empirical sensitivity vs time-in-warning trade-off (Karoly 2017 Fig 6)</summary>
+
+The *empirical* complement to the analytic `bridge`: sweep the decision
+threshold and trace seizure-level sensitivity against time-in-warning,
+the field-standard forecasting view. Chance is the diagonal
+(sensitivity == time-in-warning); a forecaster carries signal only above
+it.
+
+```python
+from scitex_seizure_metrics import AlarmPolicy, plots, sensitivity_tiw
+
+policy = AlarmPolicy(sph_seconds=0, sop_seconds=600,
+                     cadence_seconds=60, refractory_seconds=600)
+
+curve = sensitivity_tiw.sensitivity_tiw_curve(
+    scores, policy, seizure_times=onsets, times=times, target_tiw=0.20,
+)
+print(curve.improvement_over_chance,        # AUC-like area above the diagonal
+      curve.sensitivity_at_target_tiw,      # sensitivity at 20 % time-in-warning
+      curve.tiw_at_target_sensitivity)      # time-in-warning at 75 % sensitivity
+
+# Is the operating point above a time-matched coin?
+sig = sensitivity_tiw.surrogate_above_chance(
+    scores, policy, threshold=0.5, seizure_times=onsets, times=times,
+)
+print(sig.p_value, sig.ci_low, sig.ci_high)
+
+plots.sensitivity_tiw([curve], save_path="fig_sens_tiw")  # png + pdf
+```
+
+See [`docs/math/sensitivity_tiw.md`](docs/math/sensitivity_tiw.md) for the
+chance-diagonal derivation and a worked example.
 
 </details>
 
@@ -253,6 +345,7 @@ plots.reliability_diagram(cal)
 ```python
 from scitex_seizure_metrics import plots
 plots.sensitivity_vs_fp_per_hour(sweep_df)        # operating curve
+plots.sensitivity_tiw([curve])                    # sensitivity vs time-in-warning (Karoly 2017 Fig 6)
 plots.ioc_vs_surrogate(sweep_df)                  # model vs chance
 plots.cadence_ablation(policy_sweep_df)           # FP/hr vs cadence
 plots.sample_vs_alarm_scatter(per_patient_df)     # the Andrade 2024 figure
@@ -260,6 +353,21 @@ plots.metric_correlation_heatmap(per_patient_df)  # redundancy diagnostic
 ```
 
 </details>
+
+## Empirical validation of the sample↔alarm bridge
+
+The analytic [`bridge`](docs/math/sample_to_alarm.md) is validated by Monte Carlo. For each setting we synthesise a long per-window stream with a **known** per-window sensitivity `s` and specificity `1 − α` plus seizures, run the `AlarmPolicy`, and measure the **empirical** alarm-sensitivity and FP/hr. We check (i) the empirical values land inside the analytic `sample_to_alarm` `[lower, upper]` bands, and (ii) the reverse `alarm_to_sample` recovers the true per-window `s` and specificity. Each seizure's SOP holds `K = ceil(SOP / cadence)` windows by construction, so the per-seizure detection bound is `1 − (1 − s)^K` independent of prevalence — the soundness fix that replaced an earlier prevalence-shrunk `K_eff` which collapsed the upper bound to `s` at realistic low prevalence (empirical ≈ 1.0 vs that bound 0.5 → violated).
+
+![Empirical validation of the sample↔alarm bridge](docs/bridge_validation.png)
+
+| s | specificity | prevalence | K | empirical alarm-sens | alarm-sens band | empirical FP/hr | FP/hr band | sens | FP/hr | reverse s | reverse spec |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.50 | 0.90 | 0.05 | 10 | 0.950 | [0.50, 1.00] | 3.010 | [0.00, 5.70] | PASS | PASS | PASS | PASS |
+| 0.30 | 0.95 | 0.02 | 30 | 0.942 | [0.30, 1.00] | 2.382 | [0.00, 4.00] | PASS | PASS | PASS | PASS |
+| 0.70 | 0.85 | 0.10 | 5 | 0.850 | [0.70, 1.00] | 4.930 | [0.00, 8.10] | PASS | PASS | PASS | PASS |
+| 0.60 | 0.99 | 0.01 | 60 | 0.992 | [0.60, 1.00] | 0.748 | [0.00, 1.19] | PASS | PASS | PASS | PASS |
+
+All four settings pass in **both** directions. Reproduce with `python examples/06_bridge_validation.py` (writes the figure to `docs/bridge_validation.{png,pdf}` and the table to `examples/06_bridge_validation_out/`); CI guards it via `tests/examples/test_06_bridge_validation.py`.
 
 ## References
 

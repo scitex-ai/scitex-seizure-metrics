@@ -59,37 +59,44 @@ $$
 K = \left\lceil \frac{\text{SOP}}{\Delta} \right\rceil .
 $$
 
-### Step 2. Prevalence-adjusted effective K
+### Step 2. Effective K
 
-Low-prevalence streams may not actually *contain* $K$ pre-ictal-labelled
-windows inside a given SOP — many of the $K$ windows could be
-unlabelled as pre-ictal. The bridge therefore uses an effective $K$
-that adjusts for prevalence:
+Every seizure's SOP contains exactly $K$ prediction windows *by
+construction*, independent of the global prevalence $\pi$. Prevalence
+governs how many windows are pre-ictal **across the whole stream** — and
+therefore the per-hour count of negative windows that drives FP/hr — not
+how many windows sit inside a single SOP. The detection bounds therefore
+use
 
 $$
-K_{\text{eff}} = \min\!\Big( K,\ \max(1, \operatorname{round}(K \cdot \pi)) \Big) .
+K_{\text{eff}} = K
 $$
 
-When $\pi = 1$ (every window inside the SOP is pre-ictal) this reduces
-to $K_{\text{eff}} = K$. When $\pi$ is small (most windows inside the
-SOP carry no pre-ictal label), $K_{\text{eff}}$ shrinks toward 1.
+with no prevalence shrink. (An earlier release used
+$K_{\text{eff}} = \min(K, \max(1, \operatorname{round}(K \cdot \pi)))$;
+that conflated the global prevalence with the per-seizure window count,
+collapsed $K_{\text{eff}}$ to 1 at realistic low $\pi$ — driving
+$\text{alarm\_sens}_{\text{upper}}$ all the way down to $s$ — and made
+$\text{SOP} = 15\,\text{s}$ and $\text{SOP} = 60\,\text{s}$ degenerate.
+A Monte-Carlo check found empirical alarm-sensitivity $\approx 1.0$ while
+that bound read $0.5$, i.e. violated. See "Empirical validation" in the
+README.)
 
 ### Step 3. Alarm sensitivity bounds
 
 Let "alarm fires for a given seizure" be the event that at least one of
-the $K_{\text{eff}}$ candidate windows is above threshold. Under the
+the $K$ candidate windows is above threshold. Under the
 **independent-errors** assumption — the optimistic envelope — the
-probability that none of the $K_{\text{eff}}$ windows fires is
-$(1 - s)^{K_{\text{eff}}}$, so
+probability that none of the $K$ windows fires is $(1 - s)^{K}$, so
 
 $$
-\boxed{\ \text{alarm\_sens}_{\text{upper}} = 1 - (1 - s)^{K_{\text{eff}}} \ }
+\boxed{\ \text{alarm\_sens}_{\text{upper}} = 1 - (1 - s)^{K} \ }
 $$
 
 Under **fully-clustered errors** — the pessimistic envelope, where the
 classifier's window-level decisions inside one SOP are perfectly
-correlated, so either all $K_{\text{eff}}$ fire or none does — the
-alarm probability collapses to the per-window sensitivity:
+correlated, so either all $K$ fire or none does — the alarm probability
+collapses to the per-window sensitivity:
 
 $$
 \boxed{\ \text{alarm\_sens}_{\text{lower}} = s \ }
@@ -97,7 +104,8 @@ $$
 
 These two bounds are tight envelopes: any real classifier whose
 window-level errors have positive but partial correlation will fall
-between them.
+between them. Because $K = \lceil \text{SOP} / \Delta \rceil$, a longer
+SOP correctly widens the band — more chances to catch each seizure.
 
 ### Step 4. False-positive rate per hour
 
@@ -147,7 +155,7 @@ Inverting Step 3's upper bound (independent errors) gives the smallest
 per-window $s$ consistent with the reported alarm sensitivity:
 
 $$
-s_{\text{lower}} = 1 - (1 - \text{alarm\_sens})^{1 / K_{\text{eff}}}
+s_{\text{lower}} = 1 - (1 - \text{alarm\_sens})^{1 / K}
 $$
 
 The trivial upper bound is obtained from Step 3's lower bound (fully
@@ -185,11 +193,11 @@ correlation-uncertainty reason as the FP/h lower bound.
 
 - **Width of the alarm-sensitivity band.** The gap
   $\text{alarm\_sens}_{\text{upper}} - \text{alarm\_sens}_{\text{lower}}$
-  grows with $K_{\text{eff}}$. For $K_{\text{eff}} = 1$ the bounds
-  coincide at $s$ (one chance per seizure → no opportunity for
-  independent retries). For large $K_{\text{eff}}$ the upper bound
-  approaches 1 even for modest $s$, which is exactly the Andrade-2024
-  observation that the two regimes can disagree.
+  grows with $K$. For $K = 1$ (SOP $\le$ one cadence) the bounds coincide
+  at $s$ (one chance per seizure → no opportunity for independent
+  retries). For large $K$ the upper bound approaches 1 even for modest
+  $s$, which is exactly the Andrade-2024 observation that the two regimes
+  can disagree.
 
 - **Refractory dominance.** If $\alpha \cdot N_{\text{preds/h}} \cdot
   (1 - \pi) > 3600 / R$, the refractory cap binds and the classifier's
@@ -221,9 +229,9 @@ interictal-control windows per ADR-0007 of the consuming project), with
 $\text{SOP} = 1800\,\text{s}$, $\Delta = 30\,\text{s}$,
 $R = 1800\,\text{s}$.
 
-- $K = \lceil 1800 / 30 \rceil = 60$.
-- $K_{\text{eff}} = \min(60,\ \max(1,\ \operatorname{round}(60 \cdot 0.5))) = 30$.
-- $\text{alarm\_sens}_{\text{upper}} = 1 - 0.4^{30} \approx 1.000$.
+- $K = \lceil 1800 / 30 \rceil = 60$ (and $K_{\text{eff}} = K = 60$,
+  independent of $\pi$).
+- $\text{alarm\_sens}_{\text{upper}} = 1 - 0.4^{60} \approx 1.000$.
 - $\text{alarm\_sens}_{\text{lower}} = 0.6$.
 - $N_{\text{preds/h}} = 120$.
 - $\text{FP/h}_{\text{naive}} = 0.15 \cdot 120 \cdot 0.5 = 9.0$.
