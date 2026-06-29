@@ -7,26 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **`bridge` K_eff soundness** — `sample_to_alarm` / `alarm_to_sample` no longer shrink the per-seizure window count by prevalence (the old `K_eff = min(K, max(1, round(K·π)))` collapsed to 1 at realistic low prevalence, driving `alarm_sensitivity_upper` down to `s` — Monte Carlo showed empirical alarm-sensitivity ≈ 1.0 vs that bound 0.5, violated in both directions). Each SOP holds `K = ceil(SOP / cadence)` windows by construction, so `K_eff = K` and `alarm_sensitivity_upper = 1 − (1 − s)^K`; SOP now correctly affects detection (the old formula made SOP = 15 s and SOP = 60 s degenerate). Prevalence is retained only in the FP/hr `(1 − π)` factor.
-- **`plots.sensitivity_tiw` operating-point marker** — the target-budget marker no longer floats off the curve. The curve is now drawn as the monotone upper envelope (steps-post staircase: best sensitivity achievable at TiW ≤ x), so the `sensitivity_at_target_tiw` marker lands exactly on the drawn line.
-
-### Added
-
-- **`scitex_seizure_metrics.sensitivity_tiw.monotone_upper_envelope`** — the achievable (TiW, sensitivity) operating frontier (running max of sensitivity over TiW ≤ budget); the envelope the operating-point marker reads off.
-- **`plots.sensitivity_tiw(..., aspect=1.0)`** — square axes by default (both axes span 0–100 %); overridable (e.g. `aspect="auto"`).
-- **`examples/06_bridge_validation.py`** + **`tests/examples/test_06_bridge_validation.py`** — reproducible Monte-Carlo validation of the sample↔alarm bridge across several `(s, α, SOP, prevalence)` settings, with a `docs/bridge_validation.{png,pdf}` figure and a results table; CI asserts all bounds hold in both directions (regression guard for the K_eff fix). See the "Empirical validation of the sample↔alarm bridge" README section.
-
-- **`scitex_seizure_metrics.sensitivity_tiw`** — empirical sensitivity-vs-time-in-warning trade-off (the field-standard forecasting view; Karoly 2017 *Brain* 140:2169 Fig 6 / Karoly 2019), the empirical complement to the analytic `bridge`:
-  - `sensitivity_tiw_curve(scores, policy, labels=… | seizure_times=…, …)` — sweeps the decision threshold and returns an ordered (threshold, time-in-warning, sensitivity) curve plus summary scalars: `improvement_over_chance` (AUC-like area above the chance diagonal), `sensitivity_at_target_tiw`, `tiw_at_target_sensitivity`. Time-in-warning is the time-weighted fraction of windows above threshold; sensitivity is SOP-aware (seizure caught iff ≥1 warning covers the pre-ictal window).
-  - `chance_sensitivity(tiw)` — the chance diagonal (a time-matched random alarm catches a fraction `tiw` of seizures in expectation).
-  - `binomial_above_chance(...)` — exact one-sided binomial test of sensitivity vs chance at an operating point, with a Wilson interval.
-  - `surrogate_above_chance(...)` — circular time-shift permutation test (holds time-in-warning fixed while breaking seizure phase-locking).
-  - `SensitivityTiWCurve` / `TiWSignificance` result containers.
-- **`scitex_seizure_metrics.plots.sensitivity_tiw`** — the Karoly 2017 Fig 6 plotter: sensitivity (%) vs time-in-warning (%), one curve per subject, overlaying the chance diagonal with optional operating-point markers; optional `save_path` writes png + pdf.
-- **`docs/math/sensitivity_tiw.md`** — definitions, the chance-diagonal derivation, the two significance tests, and a worked example.
-- `scipy` added as an explicit runtime dependency (binomial test + Wilson interval).
+_Nothing yet._
 
 ## [0.2.0] - 2026-06-29
 
@@ -58,6 +39,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tests for every new metric and edge case (no alarms, all-caught, no seizures,
   ties, TN clipped below 0) in `tests/scitex_seizure_metrics/test__classification.py`
   and integration tests in `test_forecasting.py`.
+- **`scitex_seizure_metrics.sensitivity_tiw`** — empirical sensitivity-vs-time-in-warning trade-off (the field-standard forecasting view; Karoly 2017 *Brain* 140:2169 Fig 6 / Karoly 2019), the empirical complement to the analytic `bridge`:
+  - `sensitivity_tiw_curve(scores, policy, labels=… | seizure_times=…, …)` — sweeps the decision threshold and returns an ordered (threshold, time-in-warning, sensitivity) curve plus summary scalars: `improvement_over_chance` (AUC-like area above the chance diagonal), `sensitivity_at_target_tiw`, `tiw_at_target_sensitivity`. Time-in-warning is the time-weighted fraction of windows above threshold; sensitivity is SOP-aware (seizure caught iff ≥1 warning covers the pre-ictal window).
+  - `chance_sensitivity(tiw)` — the chance diagonal (a time-matched random alarm catches a fraction `tiw` of seizures in expectation).
+  - `binomial_above_chance(...)` — exact one-sided binomial test of sensitivity vs chance at an operating point, with a Wilson interval.
+  - `surrogate_above_chance(...)` — circular time-shift permutation test (holds time-in-warning fixed while breaking seizure phase-locking).
+  - `monotone_upper_envelope(...)` — the achievable (TiW, sensitivity) operating frontier (running max of sensitivity over TiW ≤ budget); the envelope the operating-point marker reads off.
+  - `SensitivityTiWCurve` / `TiWSignificance` result containers.
+- **`scitex_seizure_metrics.plots.sensitivity_tiw`** — the Karoly 2017 Fig 6 plotter: sensitivity (%) vs time-in-warning (%), one curve per subject, overlaying the chance diagonal with optional operating-point markers; `aspect=1.0` square axes by default (both axes span 0–100 %, overridable e.g. `aspect="auto"`); optional `save_path` writes png + pdf.
+- **`examples/06_bridge_validation.py`** + **`tests/examples/test_06_bridge_validation.py`** — reproducible Monte-Carlo validation of the sample↔alarm bridge across several `(s, α, SOP, prevalence)` settings, with a `docs/bridge_validation.{png,pdf}` figure and a results table; CI asserts all bounds hold in both directions (regression guard for the K_eff fix). See the "Empirical validation of the sample↔alarm bridge" README section.
+- **`docs/math/sensitivity_tiw.md`** — definitions, the chance-diagonal derivation, the two significance tests, and a worked example.
+- `scipy` added as an explicit runtime dependency (binomial test + Wilson interval).
+
+### Fixed
+
+- **`bridge` K_eff soundness** — `sample_to_alarm` / `alarm_to_sample` no longer shrink the per-seizure window count by prevalence (the old `K_eff = min(K, max(1, round(K·π)))` collapsed to 1 at realistic low prevalence, driving `alarm_sensitivity_upper` down to `s` — Monte Carlo showed empirical alarm-sensitivity ≈ 1.0 vs that bound 0.5, violated in both directions). Each SOP holds `K = ceil(SOP / cadence)` windows by construction, so `K_eff = K` and `alarm_sensitivity_upper = 1 − (1 − s)^K`; SOP now correctly affects detection (the old formula made SOP = 15 s and SOP = 60 s degenerate). Prevalence is retained only in the FP/hr `(1 − π)` factor.
+- **`plots.sensitivity_tiw` operating-point marker** — the target-budget marker no longer floats off the curve. The curve is now drawn as the monotone upper envelope (steps-post staircase: best sensitivity achievable at TiW ≤ x), so the `sensitivity_at_target_tiw` marker lands exactly on the drawn line.
 
 ## [0.1.1] - 2026-05-11
 
