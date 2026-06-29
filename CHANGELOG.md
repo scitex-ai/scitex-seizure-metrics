@@ -28,6 +28,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`docs/math/sensitivity_tiw.md`** — definitions, the chance-diagonal derivation, the two significance tests, and a worked example.
 - `scipy` added as an explicit runtime dependency (binomial test + Wilson interval).
 
+## [0.2.0] - 2026-06-29
+
+### Added
+
+- **Forecasting-regime classification metrics** — `forecasting.evaluate` /
+  `evaluate_stream` now also report the alarm-based confusion-matrix scores that
+  were previously missing from the alarm regime: `specificity`, `ppv` (alarm
+  precision), `npv`, and `forecasting_f1`, plus the raw `n_tn` and
+  `n_opportunities`. They flow through `sweep_thresholds` / `sweep_policies` and
+  appear in `report.to_dict()` / `to_frame()`. Convention: TP = caught seizures,
+  FN = uncaught seizures, FP = alarms catching nothing (the package's existing
+  counts); TN = interictal SOP-length "prediction opportunities" with no false
+  alarm, where `n_opportunities = floor(interictal_seconds / sop)` and
+  `tn = max(0, n_opportunities − fp)`. So `specificity = tn/(tn+fp)`,
+  `ppv = tp/(tp+fp)`, `npv = tn/(tn+fn)`, `forecasting_f1 = 2·tp/(2·tp+fp+fn)`.
+  `specificity` and `npv` depend on the SOP-opportunity TN convention (documented
+  in `_classification.py`); `ppv` and `forecasting_f1` do not. Undefined ratios
+  return NaN (fail-loud), never a silent 0.
+- **Observed lead/warning time** — per caught seizure, the time from the earliest
+  catching alarm (after SPH) to seizure onset (distinct from the SPH
+  *constraint*). `report.lead_time_mean` / `lead_time_median` summarise the
+  distribution; the per-seizure array lives in `extras["lead_times_seconds"]`
+  (with `lead_time_min` / `lead_time_max` / `n_caught` also in `extras`). Empty
+  (no seizure caught) summarises to NaN, never 0 s.
+- **`scitex_seizure_metrics._classification`** — internal module with
+  `alarm_classification(...)`, `observed_lead_times(...)`, `lead_time_summary(...)`
+  and the `AlarmClassification` result container.
+- Tests for every new metric and edge case (no alarms, all-caught, no seizures,
+  ties, TN clipped below 0) in `tests/scitex_seizure_metrics/test__classification.py`
+  and integration tests in `test_forecasting.py`.
+
 ## [0.1.1] - 2026-05-11
 
 ### Changed

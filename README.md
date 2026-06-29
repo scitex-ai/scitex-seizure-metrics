@@ -80,6 +80,8 @@ the README, the docstrings, and the cited papers.
 | **Time-in-warning** (TIW, "proportion time in warning") | Fraction of recording time spent inside an active warning window (between alarm onset and refractory end). The natural denominator that pairs with sensitivity in the Proix 2021 operating curve. |
 | **Sensitivity vs proportion-time-in-warning** | Operating curve introduced by Proix 2021. Plotted instead of sensitivity vs FP/hr when alarm refractory periods make per-hour counts misleading. Same x-axis units as Cook 2013's "time-in-warning" reporting. |
 | **Beats chance (alarm)** | Boolean — is the model's IoC above the surrogate distribution at the configured significance level? Andrade 2024's headline: 50/56 patients beat chance under sample-based eval but only 6/46 under alarm-based. |
+| **Specificity / PPV / NPV / F1 (alarm regime)** | Standard confusion-matrix scores on the alarm-vs-prediction-opportunity basis. **TP** = caught seizures, **FN** = uncaught seizures, **FP** = alarms catching nothing; **TN** = interictal SOP-length "prediction opportunities" with no false alarm (`n_opportunities = floor(interictal_seconds / SOP)`, `TN = max(0, n_opportunities − FP)`, Snyder/Schelter/Mormann tradition). So `specificity = TN/(TN+FP)`, `ppv` (alarm precision) `= TP/(TP+FP)`, `npv = TN/(TN+FN)`, `forecasting_f1 = 2·TP/(2·TP+FP+FN)`. `specificity`/`npv` scale with the SOP-opportunity TN convention (`n_tn` / `n_opportunities` are reported alongside so the denominator is visible); `ppv`/`forecasting_f1` do not depend on TN. Undefined ratios are NaN, never a silent 0. |
+| **Observed lead time** | Per caught seizure, onset minus the *earliest* catching alarm (after SPH). Distinct from the SPH *constraint*: SPH is the minimum required gap, lead time is what the system actually delivered (always SPH ≤ lead ≤ SPH + SOP). `lead_time_mean` / `lead_time_median` summarise the distribution; the per-seizure array is in `extras["lead_times_seconds"]`. |
 
 </details>
 
@@ -183,6 +185,10 @@ rep = forecasting.evaluate_stream(
     total_recording_time=24 * 3600, n_surrogate=1000,
 )
 print(rep.sensitivity, rep.fp_per_hour, rep.ioc, rep.time_in_warning_frac)
+# Alarm-regime confusion metrics + observed lead time
+print(rep.specificity, rep.ppv, rep.npv, rep.forecasting_f1)
+print(rep.lead_time_mean, rep.lead_time_median,
+      rep.extras["lead_times_seconds"])
 
 # Operating curve across thresholds
 df = forecasting.sweep_thresholds(proba, times, seizures, policy)
