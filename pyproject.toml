@@ -2,7 +2,7 @@
 name = "scitex-seizure-metrics"
 version = "0.2.0"
 description = "Standardised evaluation metrics for epileptic seizure detection and forecasting."
-authors = [{ name = "Yusuke Watanabe", email = "ywata1989@gmail.com" }]
+authors = [{ name = "Yusuke Watanabe", email = "dev@scitex.ai" }]
 readme = "README.md"
 license = { text = "AGPL-3.0-or-later" }
 requires-python = ">=3.10"
