@@ -14,12 +14,16 @@
 
 <!-- scitex-badges:start -->
 <p align="center">
-  <a href="https://pypi.org/project/scitex-seizure-metrics/"><img src="https://img.shields.io/pypi/v/scitex-seizure-metrics.svg" alt="PyPI"></a>
-  <a href="https://pypi.org/project/scitex-seizure-metrics/"><img src="https://img.shields.io/pypi/pyversions/scitex-seizure-metrics.svg" alt="Python"></a>
-  <a href="https://github.com/ywatanabe1989/scitex-seizure-metrics/actions/workflows/test.yml"><img src="https://github.com/ywatanabe1989/scitex-seizure-metrics/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
-  <a href="https://codecov.io/gh/ywatanabe1989/scitex-seizure-metrics"><img src="https://codecov.io/gh/ywatanabe1989/scitex-seizure-metrics/graph/badge.svg" alt="Coverage"></a>
-  <a href="https://scitex-seizure-metrics.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/scitex-seizure-metrics/badge/?version=latest" alt="Docs"></a>
-  <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/license-AGPL_v3-blue.svg" alt="License: AGPL v3"></a>
+  <a href="https://pypi.org/project/scitex-seizure-metrics/"><img src="https://img.shields.io/pypi/v/scitex-seizure-metrics?label=pypi" alt="pypi"></a>
+  <a href="https://pypi.org/project/scitex-seizure-metrics/"><img src="https://img.shields.io/pypi/pyversions/scitex-seizure-metrics?label=python" alt="python"></a>
+  <a href="https://scitex-seizure-metrics.readthedocs.io/en/latest/"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-seizure-metrics/pr-ci.yml?branch=develop&label=docs" alt="docs"></a>
+  <a href="https://scitex-seizure-metrics.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/scitex-seizure-metrics?label=docs" alt="docs"></a>
+</p>
+<p align="center">
+  <a href="https://github.com/ywatanabe1989/scitex-seizure-metrics/actions/workflows/pr-ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-seizure-metrics/pr-ci.yml?branch=develop&label=tests" alt="tests"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-seizure-metrics/actions/workflows/pr-ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-seizure-metrics/pr-ci.yml?branch=develop&label=install-check" alt="install-check"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-seizure-metrics/actions/workflows/pr-ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-seizure-metrics/pr-ci.yml?branch=develop&label=quality" alt="quality"></a>
+  <a href="https://codecov.io/gh/ywatanabe1989/scitex-seizure-metrics"><img src="https://img.shields.io/codecov/c/github/ywatanabe1989/scitex-seizure-metrics/develop?label=cov" alt="cov"></a>
 </p>
 <!-- scitex-badges:end -->
 
@@ -29,9 +33,11 @@
 
 | # | Problem | Solution |
 |---|---------|----------|
-| 1 | **Cross-paper comparison is broken** — Cook 2013 reports time-in-warning, Karoly 2017 reports AUROC + Brier, Maturana 2020 reports AUROC + IoC, Kuhlmann 2018 reports AUROC, Proix 2021 reports IoC + AUC of sensitivity vs proportion-time-in-warning. No two of these can be plotted on the same axis without re-running their methods. | **One `MetricsReport` object** carries both regimes through one API; `bridge.sample_to_alarm` gives analytic bounds when only one side is reported. |
-| 2 | **Sample- vs alarm-based collapse is documented but untooled** — Andrade 2024 showed that 50/56 patients beat chance under sample-based eval but **only 6/46 under alarm-based**. The community accepts the warning but has no packaged tool to apply both regimes routinely. | **`detection.evaluate` + `forecasting.evaluate_stream`** through one library; same input, both regimes side-by-side. |
-| 3 | **FP/hr lacks a denominator convention** — some papers normalise by total recording time, some by interictal-only time, refractory rules vary or are unstated. | **Explicit `AlarmPolicy`** required by every alarm-aware function — no silent defaults; every reported number is reproducible. |
+| 1 | **Scattered metrics** — Cook 2013, Karoly 2017, Maturana 2020, Kuhlmann 2018 and Proix 2021 each report different numbers; no two can share one axis. | **One `MetricsReport`** through one API; `bridge.sample_to_alarm` bounds the unreported side. |
+| 2 | **Untooled collapse** — Andrade 2024: 50/56 patients beat chance sample-based, only 6/46 alarm-based; no packaged tool applies both. | **Two evaluators** in one library; same input, both regimes side-by-side. |
+| 3 | **Vague FP/hr** — total vs interictal time, unstated refractory rules. | **Explicit `AlarmPolicy`** on every alarm-aware function; every number reproducible. |
+
+<sub><b>Table 1.</b> Why seizure evaluation needs one library: scattered metrics, the untooled sample-vs-alarm collapse, and vague FP/hr denominators.</sub>
 
 <details>
 <summary><b>Comparison with existing tools</b></summary>
@@ -90,43 +96,6 @@ the README, the docstrings, and the cited papers.
 > dataclass and shown in the forecasting example below — they pin
 > alarm-derivation, not metric definitions.
 
-## Installation
-
-```bash
-pip install scitex-seizure-metrics          # runtime only
-pip install "scitex-seizure-metrics[plots]" # + matplotlib for the plots submodule
-pip install "scitex-seizure-metrics[all]"   # plots + docs + dev toolchain
-```
-
-Python ≥ 3.10 (CI tests 3.11 / 3.12 / 3.13). Through the SciTeX umbrella:
-`pip install "scitex[seizure-metrics]"` → `scitex.seizure_metrics.*`.
-
-## Demo
-
-```python
-from scitex_seizure_metrics import detection, forecasting, AlarmPolicy
-
-# Per-window detection metrics (sensitivity, false-positives/hour, ...)
-m = detection.evaluate(y_true=labels, y_pred=preds, fs=256)
-print(m.sensitivity, m.fp_per_hour)
-
-# Forecasting metrics (Improvement-over-chance, AUROC, alarm count)
-f = forecasting.evaluate(
-    alarm_times=alarms, seizure_times=onsets,
-    policy=AlarmPolicy(sph_seconds=300, sop_seconds=600,
-                       cadence_seconds=60, refractory_seconds=600),
-    total_recording_time=24 * 3600,
-)
-print(f.ioc, f.roc_auc)
-```
-
-```mermaid
-graph LR
-    Labels["per-window y_true / y_pred"] --> Det["detection.evaluate"]
-    Onsets["seizure_times + alarm_times"] --> Fore["forecasting.evaluate"]
-    Det --> Out["sensitivity / FP-per-hour / latency"]
-    Fore --> Out2["IoC / AUROC / alarm count"]
-```
 
 ## Quick Start
 
@@ -194,6 +163,56 @@ time is distinct from the SPH *constraint* — SPH is the minimum required,
 lead time is what the system actually delivered
 (`SPH ≤ lead ≤ SPH + SOP`).
 
+## Demo
+
+```python
+from scitex_seizure_metrics import detection, forecasting, AlarmPolicy
+
+# Per-window detection metrics (sensitivity, false-positives/hour, ...)
+m = detection.evaluate(y_true=labels, y_pred=preds, fs=256)
+print(m.sensitivity, m.fp_per_hour)
+
+# Forecasting metrics (Improvement-over-chance, AUROC, alarm count)
+f = forecasting.evaluate(
+    alarm_times=alarms, seizure_times=onsets,
+    policy=AlarmPolicy(sph_seconds=300, sop_seconds=600,
+                       cadence_seconds=60, refractory_seconds=600),
+    total_recording_time=24 * 3600,
+)
+print(f.ioc, f.roc_auc)
+```
+
+```mermaid
+graph LR
+    Labels["per-window y_true / y_pred"] --> Det["detection.evaluate"]
+    Onsets["seizure_times + alarm_times"] --> Fore["forecasting.evaluate"]
+    Det --> Out["sensitivity / FP-per-hour / latency"]
+    Fore --> Out2["IoC / AUROC / alarm count"]
+```
+
+<sub><b>Figure 1.</b> Demo data flow: per-window labels feed detection, seizure/alarm times feed forecasting.</sub>
+
+## Installation
+
+```bash
+uv pip install "scitex-seizure-metrics[all]"
+```
+
+Python ≥ 3.10 (CI tests 3.11 / 3.12 / 3.13). Through the SciTeX umbrella:
+`pip install "scitex[seizure-metrics]"` → `scitex.seizure_metrics.*`.
+
+<details>
+<summary>Extras</summary>
+
+```bash
+uv pip install scitex-seizure-metrics              # runtime only
+uv pip install "scitex-seizure-metrics[plots]"     # + matplotlib for plots
+uv pip install "scitex-seizure-metrics[all]"       # plots + docs + dev
+```
+
+</details>
+
+
 ## Architecture
 
 ```mermaid
@@ -206,6 +225,8 @@ flowchart LR
     RepDet -.->|"bridge analytic bounds"| RepFc
     RepFc --> Plots["plots: sensitivity vs FP/hr,<br/>IoC vs surrogate, cadence ablation"]
 ```
+
+<sub><b>Figure 2.</b> Architecture: detection and forecasting converge on MetricsReport; the bridge bounds the unreported regime.</sub>
 
 The split mirrors how the seizure-evaluation literature itself is
 organised — sample-based vs alarm-based vs the bridge — so a

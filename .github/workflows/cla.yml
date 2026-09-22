@@ -24,4 +24,9 @@ jobs:
     uses: scitex-ai/.github/.github/workflows/cla.yml@main
     with:
       owner_allowlist: "bot*,ywatanabe1989,LLEmacs"
-    secrets: inherit
+    # PS-224: named secret only — `secrets: inherit` would forward EVERY
+    # secret this repo holds into a job an outsider can trigger via
+    # issue_comment / pull_request_target. The callee declares exactly one
+    # required secret (GH_PERSONAL_ACCESS_TOKEN), so pass only that.
+    secrets:
+      GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
