@@ -1,12 +1,7 @@
 name: CLA Assistant
 
-# PILOT: org-level reusable-workflow caller (scitex-ai/.github, 2026-07-10).
-# Triggers/permissions preserved verbatim from the prior local file.
-# Reusable workflow defaults (owner_login=ywatanabe1989,
-# owner_allowlist="bot*,ywatanabe1989", default_branch=main) do NOT match
-# this repo's prior hardcoded allowlist (adds LLEmacs), so `owner_allowlist`
-# is overridden below.
-
+# Retain trusted main contributor policy with centralized CLA storage.
+# Pass only the secret declared by this untrusted-trigger workflow.
 on:
   issue_comment:
     types: [created]
@@ -24,9 +19,5 @@ jobs:
     uses: scitex-ai/.github/.github/workflows/cla.yml@main
     with:
       owner_allowlist: "bot*,ywatanabe1989,LLEmacs"
-    # PS-224: named secret only — `secrets: inherit` would forward EVERY
-    # secret this repo holds into a job an outsider can trigger via
-    # issue_comment / pull_request_target. The callee declares exactly one
-    # required secret (GH_PERSONAL_ACCESS_TOKEN), so pass only that.
     secrets:
       GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}

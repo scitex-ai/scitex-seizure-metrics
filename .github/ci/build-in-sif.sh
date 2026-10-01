@@ -33,7 +33,7 @@ export LC_ALL=C.UTF-8 LANG=C.UTF-8
 # unique-per-run (RUN_ID/ATTEMPT) so concurrent jobs / re-runs never collide.
 TMPDIR="/tmp/build-scitex_seizure_metrics-${GITHUB_RUN_ID:-0}-${GITHUB_RUN_ATTEMPT:-0}-$V"
 export TMPDIR
-rm -rf "$TMPDIR"
+rm -rf "${TMPDIR:?}"
 mkdir -p "$TMPDIR/site" "$TMPDIR/uv-cache"
 
 # The compute-node $HOME is RO inside the container — point every cache the
