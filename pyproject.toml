@@ -91,6 +91,13 @@ ignore = ["E501", "E402"]
 [tool.scitex-linter]
 library_dirs = ["src", "tests", "examples"]
 
+[tool.scitex_dev]
+# No console script and no __main__ — pure metrics library, so the
+# subprocess CLI smoke layer (PS-211) and the e2e layer (PS-212) do not
+# apply. Documented opt-out (no_cli implies no_e2e).
+
+no_cli = true
+
 [tool.scitex_dev.audit]
 # PS-168 — Per-package secret + env-var prefix in GitHub Actions workflows.
 # `GH_PERSONAL_ACCESS_TOKEN` is the ecosystem-wide cross-cutting PAT used

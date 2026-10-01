@@ -22,9 +22,16 @@ def sensitivity_vs_fp_per_hour(
     Plots sensitivity (y) vs FP/hr (x). Optional reference lines for
     Mormann's 0.15/h and the wearable target 0.042/h.
     """
-    import matplotlib.pyplot as plt
-
     if ax is None:
+        # PS-233: matplotlib is the optional [plots] extra — guard the
+        # import so lean installs can still call this with their own ax.
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as exc:
+            raise ImportError(
+                "plots need matplotlib: "
+                "pip install scitex-seizure-metrics[plots]"
+            ) from exc
         _, ax = plt.subplots(figsize=(5, 4))
     df = sweep_df.sort_values("fp_per_hour")
     ax.plot(
@@ -59,9 +66,16 @@ def sample_vs_alarm_scatter(
     vs alarm-based sensitivity. Identity line shows the (false) hope of
     direct correspondence.
     """
-    import matplotlib.pyplot as plt
-
     if ax is None:
+        # PS-233: matplotlib is the optional [plots] extra — guard the
+        # import so lean installs can still call this with their own ax.
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as exc:
+            raise ImportError(
+                "plots need matplotlib: "
+                "pip install scitex-seizure-metrics[plots]"
+            ) from exc
         _, ax = plt.subplots(figsize=(5, 4.5))
     ax.scatter(per_patient_df[x_metric], per_patient_df[y_metric], s=40, alpha=0.85)
     ax.plot([0, 1], [0, 1], color="grey", linestyle=":", label="identity")
@@ -85,9 +99,16 @@ def cadence_ablation(
     """How does FP/hr (or any metric) move as we change the cadence?
     Input: forecasting.sweep_policies output sorted by cadence.
     """
-    import matplotlib.pyplot as plt
-
     if ax is None:
+        # PS-233: matplotlib is the optional [plots] extra — guard the
+        # import so lean installs can still call this with their own ax.
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as exc:
+            raise ImportError(
+                "plots need matplotlib: "
+                "pip install scitex-seizure-metrics[plots]"
+            ) from exc
         _, ax = plt.subplots(figsize=(5, 4))
     df = sweep_df.sort_values(x)
     ax.plot(df[x], df[y], marker="s", linestyle="-")
@@ -102,9 +123,16 @@ def ioc_vs_surrogate(sweep_df, *, ax=None):
     """IoC (sensitivity − surrogate_sensitivity) across thresholds.
     Useful to see the threshold range where the model truly beats chance.
     """
-    import matplotlib.pyplot as plt
-
     if ax is None:
+        # PS-233: matplotlib is the optional [plots] extra — guard the
+        # import so lean installs can still call this with their own ax.
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as exc:
+            raise ImportError(
+                "plots need matplotlib: "
+                "pip install scitex-seizure-metrics[plots]"
+            ) from exc
         _, ax = plt.subplots(figsize=(5, 4))
     df = sweep_df.sort_values("threshold")
     ax.plot(df["threshold"], df["sensitivity"], label="model sens", marker="o")
@@ -136,9 +164,16 @@ def reliability_diagram(cal_report, *, ax=None, title: str = "Reliability diagra
     The dashed identity line represents perfect calibration. Bin counts
     are shown via marker size.
     """
-    import matplotlib.pyplot as plt
-
     if ax is None:
+        # PS-233: matplotlib is the optional [plots] extra — guard the
+        # import so lean installs can still call this with their own ax.
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as exc:
+            raise ImportError(
+                "plots need matplotlib: "
+                "pip install scitex-seizure-metrics[plots]"
+            ) from exc
         _, ax = plt.subplots(figsize=(5, 5))
     cnts = cal_report.bin_counts
     sizes = 30 + 200 * (cnts / max(1, cnts.max()))
@@ -239,8 +274,6 @@ def sensitivity_tiw(
     References:
         Karoly PJ et al., Brain 2017; 140: 2169 (Fig 6). Karoly 2019.
     """
-    import matplotlib.pyplot as plt
-
     from .sensitivity_tiw import monotone_upper_envelope
 
     # Normalise to a list of curves.
@@ -252,6 +285,15 @@ def sensitivity_tiw(
         curve_list = [curves]
 
     if ax is None:
+        # PS-233: matplotlib is the optional [plots] extra — guard the
+        # import so lean installs can still call this with their own ax.
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as exc:
+            raise ImportError(
+                "plots need matplotlib: "
+                "pip install scitex-seizure-metrics[plots]"
+            ) from exc
         _, ax = plt.subplots(figsize=(5, 5))
     scale = 100.0 if percent else 1.0
     unit = "%" if percent else "fraction"
@@ -335,7 +377,6 @@ def metric_correlation_heatmap(
     Surfaces redundancy ("this metric tells us nothing new") and the
     sample-vs-alarm divergence axis.
     """
-    import matplotlib.pyplot as plt
 
     if metrics is None:
         candidates = [
@@ -354,6 +395,15 @@ def metric_correlation_heatmap(
     sub = per_patient_df[metrics].select_dtypes(include="number")
     corr = sub.corr(method=method)
     if ax is None:
+        # PS-233: matplotlib is the optional [plots] extra — guard the
+        # import so lean installs can still call this with their own ax.
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as exc:
+            raise ImportError(
+                "plots need matplotlib: "
+                "pip install scitex-seizure-metrics[plots]"
+            ) from exc
         _, ax = plt.subplots(figsize=(6, 5))
     im = ax.imshow(corr.values, vmin=-1, vmax=1, cmap="RdBu_r")
     ax.set_xticks(range(len(metrics)))
