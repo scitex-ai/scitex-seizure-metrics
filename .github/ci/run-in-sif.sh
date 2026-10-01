@@ -14,7 +14,13 @@ mkdir -p "$TMPDIR/site" "$TMPDIR/uv-cache" "$TMPDIR/scitex-state"
 export UV_CACHE_DIR="$TMPDIR/uv-cache" XDG_CACHE_HOME="$TMPDIR/cache"
 export PIP_CACHE_DIR="$TMPDIR/pip-cache" MPLCONFIGDIR="$TMPDIR/mpl"
 export SCITEX_DIR="$TMPDIR/scitex-state" MPLBACKEND=Agg RUN_E2E=1
-mkdir -p "$MPLCONFIGDIR"
+# IPython and Jupyter otherwise create state below HOME even when TMPDIR
+# is writable. Keep notebook execution on the same job-owned filesystem.
+export XDG_CONFIG_HOME="$TMPDIR/config" XDG_DATA_HOME="$TMPDIR/data"
+export IPYTHONDIR="$TMPDIR/ipython" JUPYTER_CONFIG_DIR="$TMPDIR/jupyter-config"
+export JUPYTER_DATA_DIR="$TMPDIR/jupyter-data" JUPYTER_RUNTIME_DIR="$TMPDIR/jupyter-runtime"
+mkdir -p "$MPLCONFIGDIR" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$IPYTHONDIR" \
+    "$JUPYTER_CONFIG_DIR" "$JUPYTER_DATA_DIR" "$JUPYTER_RUNTIME_DIR"
 unset VIRTUAL_ENV || true
 export PATH="$VENV/bin:$PATH"
 uv pip install --python "$PY" --target="$TMPDIR/site" -e ".[all,dev]"
