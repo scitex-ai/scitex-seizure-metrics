@@ -5,10 +5,11 @@ name: release-ci
 # FULL pytest matrix — no conditional skipping — so the protected-branch
 # history is exercised on every supported Python.
 #
-# L1 concurrency — coalesce overlapping pushes on the same branch.
-# L5a uv-managed Python (`uv python install` + `uv venv --python`) so each
-#     matrix leg pins its interpreter independently of the runner.
-# L5b .venv/bin on PATH so console scripts resolve without `uv run`.
+# PILOT: org-level reusable-workflow caller (scitex-ai/.github, 2026-07-10).
+# All 3 jobs here matched their scitex-ai/.github reusable-workflow
+# counterparts exactly (full unconditional matrix, plain import smoke,
+# plain audit-all) so they were converted to thin `uses:` stubs.
+# Concurrency/triggers preserved verbatim.
 
 on:
   push:
@@ -22,79 +23,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  tests:
-    name: pytest-matrix-on-ubuntu-py${{ matrix.python-version }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.12", "3.13"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-          cache-dependency-glob: pyproject.toml
-      - name: Set up Python ${{ matrix.python-version }} (uv-managed)
-        run: uv python install ${{ matrix.python-version }}
-      - name: Create uv venv on this matrix Python
-        run: uv venv --python ${{ matrix.python-version }} .venv
-      - name: Install dependencies
-        run: |
-          uv pip install --python .venv/bin/python -e ".[all,dev]" \
-            || uv pip install --python .venv/bin/python -e ".[dev]" \
-            || uv pip install --python .venv/bin/python -e .
-      - name: Run tests
-        run: |
-          export PATH="$PWD/.venv/bin:$PATH"
-          .venv/bin/pytest tests/ --cov=src/scitex_seizure_metrics --cov-report=xml --cov-report=term
-      - name: Upload coverage to Codecov
-        if: always() && matrix.python-version == '3.12'
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          fail_ci_if_error: false
+  pytest-matrix:
+    # New required-status-check context: "pytest-matrix / pytest-matrix-on-ubuntu-py<X.YY>"
+    uses: scitex-ai/.github/.github/workflows/pytest-matrix.yml@main
+    secrets: inherit
 
   import-smoke:
-    name: import-smoke-on-ubuntu-py3-12
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-          cache-dependency-glob: pyproject.toml
-      - name: Set up Python 3.12 (uv-managed)
-        run: uv python install 3.12
-      - name: Install (no extras) in uv venv
-        run: |
-          uv venv --python 3.12 .venv
-          uv pip install --python .venv/bin/python -e .
-      - name: Import smoke
-        run: .venv/bin/python -c "import scitex_seizure_metrics; print(getattr(scitex_seizure_metrics, '__version__', 'unversioned'))"
+    # New required-status-check context: "import-smoke / import-smoke-on-ubuntu-py3-12"
+    uses: scitex-ai/.github/.github/workflows/import-smoke.yml@main
+    secrets: inherit
 
-  audit:
-    name: audit
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-          cache-dependency-glob: pyproject.toml
-      - name: Set up Python 3.12 (uv-managed)
-        run: uv python install 3.12
-      - name: Install package + audit tooling
-        run: |
-          uv venv --python 3.12 .venv
-          uv pip install --python .venv/bin/python -e ".[dev]"
-          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]"
-      - name: Run scitex-dev ecosystem audit-all
-        run: |
-          export PATH="$PWD/.venv/bin:$PATH"
-          scitex-dev ecosystem audit-all scitex-seizure-metrics --no-version-check
+  quality-audit:
+    # New required-status-check context: "quality-audit / audit"
+    uses: scitex-ai/.github/.github/workflows/quality-audit.yml@main
+    secrets: inherit
