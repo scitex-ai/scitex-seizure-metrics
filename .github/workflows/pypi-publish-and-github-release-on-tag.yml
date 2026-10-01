@@ -28,7 +28,7 @@ name: release
 #   - publish CANNOT use pypa/gh-action-pypi-publish (a Docker action; the
 #     compute nodes have no Docker), so it does MANUAL OIDC trusted publishing
 #     inside the SIF (.github/ci/publish-in-sif.sh): GitHub OIDC JWT →
-#     PyPI mint-token → twine upload. Trust config on PyPI is unchanged.
+#     PyPI mint-token → twine upload. Current org publishing must be confirmed by a successful OIDC mint.
 #   - actions/checkout, upload/download-artifact, codecov are JS actions and
 #     run fine on the self-hosted runner.
 # fail-loud: a missing SIF/shim/interpreter is a HARD error, never a
@@ -53,6 +53,7 @@ on:
 env:
   SCITEX_CI_APPTAINER: ${{ vars.SCITEX_CI_APPTAINER }}
   SCITEX_CI_SIF: ${{ vars.SCITEX_CI_SIF }}
+  SCITEX_CI_SIF_SHA256: ${{ vars.SCITEX_CI_SIF_SHA256 }}
 
 jobs:
   test:
@@ -128,6 +129,8 @@ jobs:
       # Need the repo checked out so .github/ci/exec-in-sif.sh +
       # publish-in-sif.sh are on disk (the build job uploaded only dist/).
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.version }}
       - uses: actions/download-artifact@v4
         with:
           name: dist

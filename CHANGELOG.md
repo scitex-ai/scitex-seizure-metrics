@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-02
+
+- Keep matplotlib optional when callers supply axes and provide actionable errors when plots need it.
+- Repair release SIF execution with verified images and job-owned temporary paths.
+- Run the full native test suite with complete declared test dependencies.
+
+
 _Nothing yet._
 
 ## [0.2.0] - 2026-06-29

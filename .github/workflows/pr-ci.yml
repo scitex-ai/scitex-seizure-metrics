@@ -84,13 +84,9 @@ jobs:
       - name: Create uv venv on this matrix Python
         run: uv venv --python ${{ matrix.python-version }} .venv
       - name: Install dependencies
-        # Fallback chain: prefer [all,dev] so optional-dep code paths
-        # get exercised. Falls back to [dev] then plain editable so a
-        # packaging hiccup doesn't strand CI.
+        # Install every declared test extra; resolution errors must fail CI.
         run: |
-          uv pip install --python .venv/bin/python -e ".[all,dev]" \
-            || uv pip install --python .venv/bin/python -e ".[dev]" \
-            || uv pip install --python .venv/bin/python -e .
+          uv pip install --python .venv/bin/python -e ".[all,dev]"
       - name: Run tests
         # PATH prepend so any test that subprocess-calls a console script
         # finds it in .venv/bin/.
